@@ -52,10 +52,7 @@ jobs:
         run: pip install twine "packaging>=24.2"
 
       - name: Publish to PyPI
-        env:
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
-        run: twine upload dist/* --verbose
+        run: twine upload dist/* -u __token__ -p ${{ secrets.PYPI_API_TOKEN }} --verbose
 
   github-release:
     needs: build
