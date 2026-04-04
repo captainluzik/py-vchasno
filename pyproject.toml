@@ -5,21 +5,32 @@ build-backend = "hatchling.build"
 [project]
 name = "vchasno"
 version = "0.1.0"
-description = "Python SDK for Vchasno.EDO API v2"
+description = "Python SDK for Vchasno.EDO (Electronic Document Management) API v2"
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.10"
-authors = [{ name = "captainluzik" }]
-keywords = ["vchasno", "edo", "api", "sdk", "document-management"]
+authors = [{ name = "Dmitriy Luzanovsky", email = "captainluzik@gmail.com" }]
+keywords = [
+    "vchasno",
+    "edo",
+    "api",
+    "sdk",
+    "document-management",
+    "electronic-signature",
+    "ukraine",
+]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Topic :: Office/Business",
+    "Topic :: Software Development :: Libraries :: Python Modules",
     "Typing :: Typed",
 ]
 dependencies = [
@@ -29,8 +40,33 @@ dependencies = [
 
 [project.urls]
 Homepage = "https://github.com/captainluzik/py-vchasno"
+Documentation = "https://github.com/captainluzik/py-vchasno#readme"
 Repository = "https://github.com/captainluzik/py-vchasno"
 Issues = "https://github.com/captainluzik/py-vchasno/issues"
+Changelog = "https://github.com/captainluzik/py-vchasno/blob/main/CHANGELOG.md"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/vchasno"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "src/vchasno/",
+    "LICENSE",
+    "README.md",
+    "CHANGELOG.md",
+    "pyproject.toml",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+
+[tool.ruff]
+target-version = "py310"
+line-length = 120
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
