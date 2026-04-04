@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, BinaryIO
+from typing import BinaryIO
 
 from vchasno.endpoints._base import AsyncEndpoint, SyncEndpoint
 from vchasno.models.common import CompanyCheck, CompanyCheckUpload
@@ -19,21 +19,20 @@ class SyncCompany(SyncEndpoint):
 
     def check_upload(self, file: str | Path | BinaryIO, *, filename: str | None = None) -> CompanyCheckUpload:
         """POST /api/v2/check/company/upload."""
+        opened: BinaryIO | None = None
         if isinstance(file, (str, Path)):
             p = Path(file)
-            fp = open(p, "rb")
             filename = filename or p.name
-            close = True
+            opened = fp = open(p, "rb")
         else:
             fp = file
             filename = filename or "companies"
-            close = False
         try:
             files = [("file", (filename, fp))]
             data = self._request("POST", "/api/v2/check/company/upload", files=files)
         finally:
-            if close:
-                fp.close()
+            if opened is not None:
+                opened.close()
         return CompanyCheckUpload.model_validate(data)
 
 
@@ -45,19 +44,18 @@ class AsyncCompany(AsyncEndpoint):
         return CompanyCheck.model_validate(data)
 
     async def check_upload(self, file: str | Path | BinaryIO, *, filename: str | None = None) -> CompanyCheckUpload:
+        opened: BinaryIO | None = None
         if isinstance(file, (str, Path)):
             p = Path(file)
-            fp = open(p, "rb")
             filename = filename or p.name
-            close = True
+            opened = fp = open(p, "rb")
         else:
             fp = file
             filename = filename or "companies"
-            close = False
         try:
             files = [("file", (filename, fp))]
             data = await self._request("POST", "/api/v2/check/company/upload", files=files)
         finally:
-            if close:
-                fp.close()
+            if opened is not None:
+                opened.close()
         return CompanyCheckUpload.model_validate(data)

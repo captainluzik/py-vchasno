@@ -33,11 +33,15 @@ class SyncTags(SyncEndpoint):
 
     def connect_documents(self, *, documents_ids: list[str], tags_ids: list[str]) -> Any:
         """POST /api/v2/tags/documents/connections."""
-        return self._request("POST", "/api/v2/tags/documents/connections", json={"documents_ids": documents_ids, "tags_ids": tags_ids})
+        return self._request(
+            "POST", "/api/v2/tags/documents/connections", json={"documents_ids": documents_ids, "tags_ids": tags_ids}
+        )
 
     def disconnect_documents(self, *, documents_ids: list[str], tags_ids: list[str]) -> Any:
         """DELETE /api/v2/tags/documents/connections."""
-        return self._request("DELETE", "/api/v2/tags/documents/connections", json={"documents_ids": documents_ids, "tags_ids": tags_ids})
+        return self._request(
+            "DELETE", "/api/v2/tags/documents/connections", json={"documents_ids": documents_ids, "tags_ids": tags_ids}
+        )
 
     def create_for_roles(self, *, roles_ids: list[str], names: list[str]) -> list[Tag]:
         """POST /api/v2/tags/roles."""
@@ -46,11 +50,15 @@ class SyncTags(SyncEndpoint):
 
     def connect_roles(self, *, roles_ids: list[str], tags_ids: list[str]) -> Any:
         """POST /api/v2/tags/roles/connections."""
-        return self._request("POST", "/api/v2/tags/roles/connections", json={"roles_ids": roles_ids, "tags_ids": tags_ids})
+        return self._request(
+            "POST", "/api/v2/tags/roles/connections", json={"roles_ids": roles_ids, "tags_ids": tags_ids}
+        )
 
     def disconnect_roles(self, *, roles_ids: list[str], tags_ids: list[str]) -> Any:
         """DELETE /api/v2/tags/roles/connections."""
-        return self._request("DELETE", "/api/v2/tags/roles/connections", json={"roles_ids": roles_ids, "tags_ids": tags_ids})
+        return self._request(
+            "DELETE", "/api/v2/tags/roles/connections", json={"roles_ids": roles_ids, "tags_ids": tags_ids}
+        )
 
 
 class AsyncTags(AsyncEndpoint):
@@ -70,21 +78,31 @@ class AsyncTags(AsyncEndpoint):
         return TagRoleList.model_validate(data)
 
     async def create_for_documents(self, *, documents_ids: list[str], names: list[str]) -> list[Tag]:
-        data = await self._request("POST", "/api/v2/tags/documents", json={"documents_ids": documents_ids, "names": names})
+        data = await self._request(
+            "POST", "/api/v2/tags/documents", json={"documents_ids": documents_ids, "names": names}
+        )
         return [Tag.model_validate(t) for t in data]
 
     async def connect_documents(self, *, documents_ids: list[str], tags_ids: list[str]) -> Any:
-        return await self._request("POST", "/api/v2/tags/documents/connections", json={"documents_ids": documents_ids, "tags_ids": tags_ids})
+        return await self._request(
+            "POST", "/api/v2/tags/documents/connections", json={"documents_ids": documents_ids, "tags_ids": tags_ids}
+        )
 
     async def disconnect_documents(self, *, documents_ids: list[str], tags_ids: list[str]) -> Any:
-        return await self._request("DELETE", "/api/v2/tags/documents/connections", json={"documents_ids": documents_ids, "tags_ids": tags_ids})
+        return await self._request(
+            "DELETE", "/api/v2/tags/documents/connections", json={"documents_ids": documents_ids, "tags_ids": tags_ids}
+        )
 
     async def create_for_roles(self, *, roles_ids: list[str], names: list[str]) -> list[Tag]:
         data = await self._request("POST", "/api/v2/tags/roles", json={"roles_ids": roles_ids, "names": names})
         return [Tag.model_validate(t) for t in data]
 
     async def connect_roles(self, *, roles_ids: list[str], tags_ids: list[str]) -> Any:
-        return await self._request("POST", "/api/v2/tags/roles/connections", json={"roles_ids": roles_ids, "tags_ids": tags_ids})
+        return await self._request(
+            "POST", "/api/v2/tags/roles/connections", json={"roles_ids": roles_ids, "tags_ids": tags_ids}
+        )
 
     async def disconnect_roles(self, *, roles_ids: list[str], tags_ids: list[str]) -> Any:
-        return await self._request("DELETE", "/api/v2/tags/roles/connections", json={"roles_ids": roles_ids, "tags_ids": tags_ids})
+        return await self._request(
+            "DELETE", "/api/v2/tags/roles/connections", json={"roles_ids": roles_ids, "tags_ids": tags_ids}
+        )

@@ -30,8 +30,14 @@ class TestPackageExports:
 
     def test_all_exports(self):
         expected = [
-            "AsyncVchasno", "Vchasno", "VchasnoError", "VchasnoAPIError",
-            "AuthenticationError", "RateLimitError", "NotFoundError", "BadRequestError",
+            "AsyncVchasno",
+            "Vchasno",
+            "VchasnoError",
+            "VchasnoAPIError",
+            "AuthenticationError",
+            "RateLimitError",
+            "NotFoundError",
+            "BadRequestError",
         ]
         for name in expected:
             assert name in vchasno.__all__

@@ -4,14 +4,12 @@ from __future__ import annotations
 
 import io
 import tempfile
-from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
 from vchasno.endpoints.archive import AsyncArchive, SyncArchive
 from vchasno.models.archive import ArchiveDirectoryList, ArchiveImportSignedResult, ArchiveScanResult
-
 
 DIRS_DATA = {"directories": [{"id": 1, "name": "Dir"}], "next_cursor": None}
 SCAN_DATA = {"documents": [{"id": "d1"}]}
@@ -35,7 +33,9 @@ class TestSyncArchive:
         ep, req = self._make()
         req.return_value = DIRS_DATA
         ep.directories(parent_id=1, search="test", cursor="c", limit=10)
-        req.assert_called_with("GET", "/api/v2/archive/directories", params={"parent_id": 1, "search": "test", "cursor": "c", "limit": 10})
+        req.assert_called_with(
+            "GET", "/api/v2/archive/directories", params={"parent_id": 1, "search": "test", "cursor": "c", "limit": 10}
+        )
 
     def test_upload_scans_binary_io(self):
         ep, req = self._make()

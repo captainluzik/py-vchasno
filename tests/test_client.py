@@ -2,29 +2,29 @@
 
 from __future__ import annotations
 
-from unittest.mock import patch, MagicMock, AsyncMock
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
 from vchasno.client import AsyncVchasno, Vchasno
-from vchasno.endpoints.documents import SyncDocuments, AsyncDocuments
-from vchasno.endpoints.signatures import SyncSignatures, AsyncSignatures
-from vchasno.endpoints.comments import SyncComments, AsyncComments
-from vchasno.endpoints.reviews import SyncReviews, AsyncReviews
-from vchasno.endpoints.versions import SyncVersions, AsyncVersions
-from vchasno.endpoints.delete_requests import SyncDeleteRequests, AsyncDeleteRequests
-from vchasno.endpoints.tags import SyncTags, AsyncTags
-from vchasno.endpoints.archive import SyncArchive, AsyncArchive
-from vchasno.endpoints.categories import SyncCategories, AsyncCategories
-from vchasno.endpoints.fields import SyncFields, AsyncFields
-from vchasno.endpoints.children import SyncChildren, AsyncChildren
-from vchasno.endpoints.groups import SyncGroups, AsyncGroups
-from vchasno.endpoints.roles import SyncRoles, AsyncRoles
-from vchasno.endpoints.templates import SyncTemplates, AsyncTemplates
-from vchasno.endpoints.reports import SyncReports, AsyncReports
-from vchasno.endpoints.cloud_signer import SyncCloudSigner, AsyncCloudSigner
-from vchasno.endpoints.billing import SyncBilling, AsyncBilling
-from vchasno.endpoints.company import SyncCompany, AsyncCompany
+from vchasno.endpoints.archive import AsyncArchive, SyncArchive
+from vchasno.endpoints.billing import AsyncBilling, SyncBilling
+from vchasno.endpoints.categories import AsyncCategories, SyncCategories
+from vchasno.endpoints.children import AsyncChildren, SyncChildren
+from vchasno.endpoints.cloud_signer import AsyncCloudSigner, SyncCloudSigner
+from vchasno.endpoints.comments import AsyncComments, SyncComments
+from vchasno.endpoints.company import AsyncCompany, SyncCompany
+from vchasno.endpoints.delete_requests import AsyncDeleteRequests, SyncDeleteRequests
+from vchasno.endpoints.documents import AsyncDocuments, SyncDocuments
+from vchasno.endpoints.fields import AsyncFields, SyncFields
+from vchasno.endpoints.groups import AsyncGroups, SyncGroups
+from vchasno.endpoints.reports import AsyncReports, SyncReports
+from vchasno.endpoints.reviews import AsyncReviews, SyncReviews
+from vchasno.endpoints.roles import AsyncRoles, SyncRoles
+from vchasno.endpoints.signatures import AsyncSignatures, SyncSignatures
+from vchasno.endpoints.tags import AsyncTags, SyncTags
+from vchasno.endpoints.templates import AsyncTemplates, SyncTemplates
+from vchasno.endpoints.versions import AsyncVersions, SyncVersions
 
 
 class TestVchasno:

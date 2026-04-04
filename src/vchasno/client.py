@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
-from typing import Self
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from typing import Self
 
 from vchasno._http import AsyncTransport, SyncTransport
 from vchasno.endpoints.archive import AsyncArchive, SyncArchive
@@ -45,7 +48,10 @@ class Vchasno:
         max_retries: int = 3,
     ) -> None:
         self._transport = SyncTransport(
-            base_url=base_url, token=token, timeout=timeout, max_retries=max_retries,
+            base_url=base_url,
+            token=token,
+            timeout=timeout,
+            max_retries=max_retries,
         )
         self.documents = SyncDocuments(self._transport)
         self.signatures = SyncSignatures(self._transport)
@@ -94,7 +100,10 @@ class AsyncVchasno:
         max_retries: int = 3,
     ) -> None:
         self._transport = AsyncTransport(
-            base_url=base_url, token=token, timeout=timeout, max_retries=max_retries,
+            base_url=base_url,
+            token=token,
+            timeout=timeout,
+            max_retries=max_retries,
         )
         self.documents = AsyncDocuments(self._transport)
         self.signatures = AsyncSignatures(self._transport)

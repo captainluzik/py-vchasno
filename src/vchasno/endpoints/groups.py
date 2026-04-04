@@ -81,4 +81,6 @@ class AsyncGroups(AsyncEndpoint):
         return [GroupMember.model_validate(m) for m in data]
 
     async def remove_members(self, group_id: str, *, group_members: list[str]) -> Any:
-        return await self._request("POST", f"/api/v2/groups/{group_id}/members/remove", json={"group_members": group_members})
+        return await self._request(
+            "POST", f"/api/v2/groups/{group_id}/members/remove", json={"group_members": group_members}
+        )

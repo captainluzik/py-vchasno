@@ -11,12 +11,16 @@ class SyncReports(SyncEndpoint):
 
     def request_document_actions(self, *, date_from: str, date_to: str) -> ReportRequest:
         """POST /api/v2/document-actions/request-report."""
-        data = self._request("POST", "/api/v2/document-actions/request-report", json={"date_from": date_from, "date_to": date_to})
+        data = self._request(
+            "POST", "/api/v2/document-actions/request-report", json={"date_from": date_from, "date_to": date_to}
+        )
         return ReportRequest.model_validate(data)
 
     def request_user_actions(self, *, date_from: str, date_to: str) -> ReportRequest:
         """POST /api/v2/user-actions/request-report."""
-        data = self._request("POST", "/api/v2/user-actions/request-report", json={"date_from": date_from, "date_to": date_to})
+        data = self._request(
+            "POST", "/api/v2/user-actions/request-report", json={"date_from": date_from, "date_to": date_to}
+        )
         return ReportRequest.model_validate(data)
 
     def status(self, report_id: str) -> ReportStatus:
@@ -33,11 +37,15 @@ class AsyncReports(AsyncEndpoint):
     """Asynchronous reports endpoint group."""
 
     async def request_document_actions(self, *, date_from: str, date_to: str) -> ReportRequest:
-        data = await self._request("POST", "/api/v2/document-actions/request-report", json={"date_from": date_from, "date_to": date_to})
+        data = await self._request(
+            "POST", "/api/v2/document-actions/request-report", json={"date_from": date_from, "date_to": date_to}
+        )
         return ReportRequest.model_validate(data)
 
     async def request_user_actions(self, *, date_from: str, date_to: str) -> ReportRequest:
-        data = await self._request("POST", "/api/v2/user-actions/request-report", json={"date_from": date_from, "date_to": date_to})
+        data = await self._request(
+            "POST", "/api/v2/user-actions/request-report", json={"date_from": date_from, "date_to": date_to}
+        )
         return ReportRequest.model_validate(data)
 
     async def status(self, report_id: str) -> ReportStatus:

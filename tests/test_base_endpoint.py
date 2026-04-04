@@ -6,10 +6,9 @@ from unittest.mock import AsyncMock, MagicMock
 
 import httpx
 import pytest
+from helpers import make_response as _make_response
 
 from vchasno.endpoints._base import AsyncEndpoint, SyncEndpoint
-
-from helpers import make_response as _make_response
 
 
 class TestSyncEndpoint:
@@ -37,9 +36,17 @@ class TestSyncEndpoint:
         transport.request.return_value = resp
 
         ep = SyncEndpoint(transport)
-        ep._request("POST", "/p", params={"a": 1}, json={"b": 2}, data={"c": 3}, files=[("f", ("n", b"d"))], headers={"H": "V"})
+        ep._request(
+            "POST", "/p", params={"a": 1}, json={"b": 2}, data={"c": 3}, files=[("f", ("n", b"d"))], headers={"H": "V"}
+        )
         transport.request.assert_called_once_with(
-            "POST", "/p", params={"a": 1}, json={"b": 2}, data={"c": 3}, files=[("f", ("n", b"d"))], headers={"H": "V"},
+            "POST",
+            "/p",
+            params={"a": 1},
+            json={"b": 2},
+            data={"c": 3},
+            files=[("f", ("n", b"d"))],
+            headers={"H": "V"},
         )
 
     def test_request_empty_content_type(self):
@@ -80,7 +87,15 @@ class TestAsyncEndpoint:
         transport.request = AsyncMock(return_value=resp)
 
         ep = AsyncEndpoint(transport)
-        await ep._request("POST", "/p", params={"a": 1}, json={"b": 2}, data={"c": 3}, files=[("f", ("n", b"d"))], headers={"H": "V"})
+        await ep._request(
+            "POST", "/p", params={"a": 1}, json={"b": 2}, data={"c": 3}, files=[("f", ("n", b"d"))], headers={"H": "V"}
+        )
         transport.request.assert_called_once_with(
-            "POST", "/p", params={"a": 1}, json={"b": 2}, data={"c": 3}, files=[("f", ("n", b"d"))], headers={"H": "V"},
+            "POST",
+            "/p",
+            params={"a": 1},
+            json={"b": 2},
+            data={"c": 3},
+            files=[("f", ("n", b"d"))],
+            headers={"H": "V"},
         )
