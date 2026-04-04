@@ -1,7 +1,7 @@
-# vchasno
+# py-vchasno
 
-[![PyPI version](https://img.shields.io/pypi/v/vchasno.svg)](https://pypi.org/project/vchasno/)
-[![Python 3.10+](https://img.shields.io/pypi/pyversions/vchasno.svg)](https://pypi.org/project/vchasno/)
+[![PyPI version](https://img.shields.io/pypi/v/py-vchasno.svg)](https://pypi.org/project/py-vchasno/)
+[![Python 3.10+](https://img.shields.io/pypi/pyversions/py-vchasno.svg)](https://pypi.org/project/py-vchasno/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 Python SDK for [Vchasno.EDO](https://edo.vchasno.ua) API v2 — Ukrainian electronic document management service.
@@ -19,19 +19,19 @@ Python SDK for [Vchasno.EDO](https://edo.vchasno.ua) API v2 — Ukrainian electr
 ### pip
 
 ```bash
-pip install vchasno
+pip install py-vchasno
 ```
 
 ### uv
 
 ```bash
-uv add vchasno
+uv add py-vchasno
 ```
 
 ### poetry
 
 ```bash
-poetry add vchasno
+poetry add py-vchasno
 ```
 
 ### From source

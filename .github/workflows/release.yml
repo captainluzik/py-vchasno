@@ -13,7 +13,6 @@ on:
 
 permissions:
   contents: write
-  id-token: write
 
 jobs:
   build:
@@ -42,9 +41,6 @@ jobs:
   pypi-publish:
     needs: build
     runs-on: ubuntu-latest
-    environment:
-      name: pypi
-      url: https://pypi.org/p/vchasno
     steps:
       - name: Download artifacts
         uses: actions/download-artifact@v4
@@ -52,8 +48,14 @@ jobs:
           name: dist
           path: dist/
 
+      - name: Install twine
+        run: pip install twine "packaging>=24.2"
+
       - name: Publish to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+        run: twine upload dist/* --verbose
 
   github-release:
     needs: build
