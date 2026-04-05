@@ -44,6 +44,7 @@ dev = [
     "pytest-asyncio>=0.24",
     "mypy>=1.10",
     "ruff>=0.4",
+    "unasyncd>=0.10",
 ]
 
 [project.urls]
@@ -76,6 +77,13 @@ warn_return_any = false
 # list() methods shadow builtins.list; BinaryIO/BufferedReader coercion; pydantic BaseModel subclass
 disable_error_code = ["valid-type", "assignment", "misc"]
 ignore_missing_imports = true
+
+[tool.unasyncd]
+add_replacements = {"AsyncTransport" = "SyncTransport", "AsyncBilling" = "SyncBilling", "AsyncEndpoint" = "SyncEndpoint", "AsyncClient" = "Client", "aclose" = "close"}
+
+[tool.unasyncd.files]
+".sisyphus/poc/task-1/async_transport_poc.py" = ".sisyphus/poc/task-1/sync_transport_poc.py"
+".sisyphus/poc/task-1/async_billing_poc.py" = ".sisyphus/poc/task-1/sync_billing_poc.py"
 
 [tool.ruff]
 target-version = "py310"
