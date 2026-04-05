@@ -7,7 +7,8 @@ from unittest.mock import AsyncMock, MagicMock
 import httpx
 import pytest
 
-from vchasno._http import AsyncTransport, SyncTransport
+from vchasno._async._http import AsyncTransport
+from vchasno._sync._http import SyncTransport
 
 
 @pytest.fixture()

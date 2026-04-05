@@ -1,0 +1,3 @@
+open_file BinaryIO: OK
+open_file filename override: OK
+open_files BinaryIO: OK

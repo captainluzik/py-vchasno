@@ -6,7 +6,8 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from vchasno.endpoints.cloud_signer import AsyncCloudSigner, SyncCloudSigner
+from vchasno._async.endpoints.cloud_signer import AsyncCloudSigner
+from vchasno._sync.endpoints.cloud_signer import SyncCloudSigner
 from vchasno.models.cloud_signer import (
     CloudSignerRefresh,
     CloudSignerRefreshCheck,
@@ -146,7 +147,7 @@ class TestAsyncCloudSigner:
     async def test_create_sign_session_minimal(self):
         ep, req = self._make()
         req.return_value = {"id": "ss1"}
-        result = await ep.create_sign_session(document_id="d1", edrpou="e", email="e@m.com", type="sign")
+        result = await ep.create_sign_session(document_id="d1", edrpou="e", email="e@m.com", session_type="sign")
         assert isinstance(result, SignSession)
 
     @pytest.mark.asyncio
@@ -154,7 +155,7 @@ class TestAsyncCloudSigner:
         ep, req = self._make()
         req.return_value = {"id": "ss1"}
         await ep.create_sign_session(
-            document_id="d1", edrpou="e", email="e@m.com", type="sign", on_cancel_url="cu", on_finish_url="fu"
+            document_id="d1", edrpou="e", email="e@m.com", session_type="sign", on_cancel_url="cu", on_finish_url="fu"
         )
         call_json = req.call_args.kwargs["json"]
         assert call_json["on_cancel_url"] == "cu"

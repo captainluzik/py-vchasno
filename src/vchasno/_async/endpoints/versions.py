@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, BinaryIO
+from typing import BinaryIO
 
 from vchasno._async.endpoints._base import AsyncEndpoint
 
@@ -11,7 +11,7 @@ from vchasno._async.endpoints._base import AsyncEndpoint
 class AsyncVersions(AsyncEndpoint):
     """Asynchronous versions endpoint group."""
 
-    async def upload(self, document_id: str, file: str | Path | BinaryIO, *, filename: str | None = None) -> Any:
+    async def upload(self, document_id: str, file: str | Path | BinaryIO, *, filename: str | None = None) -> None:
         opened: BinaryIO | None = None
         if isinstance(file, (str, Path)):
             path = Path(file)
@@ -22,10 +22,10 @@ class AsyncVersions(AsyncEndpoint):
             filename = filename or "version"
         try:
             files = [("file", (filename, fp))]
-            return await self._request("POST", f"/api/v2/documents/{document_id}/version", files=files)
+            await self._request("POST", f"/api/v2/documents/{document_id}/version", files=files)
         finally:
             if opened is not None:
                 opened.close()
 
-    async def delete(self, document_id: str, version_id: str) -> Any:
-        return await self._request("DELETE", f"/api/v2/documents/{document_id}/version/{version_id}")
+    async def delete(self, document_id: str, version_id: str) -> None:
+        await self._request("DELETE", f"/api/v2/documents/{document_id}/version/{version_id}")

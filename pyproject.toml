@@ -74,8 +74,6 @@ asyncio_mode = "auto"
 python_version = "3.11"
 strict = true
 warn_return_any = false
-# list() methods shadow builtins.list; BinaryIO/BufferedReader coercion; pydantic BaseModel subclass
-disable_error_code = ["valid-type", "assignment", "misc"]
 ignore_missing_imports = true
 
 [tool.unasyncd]
@@ -197,5 +195,8 @@ target-version = "py310"
 line-length = 120
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "UP", "B", "SIM"]
-ignore = ["SIM115"]  # open() without context manager is intentional for file-upload patterns
+select = ["E", "F", "I", "UP", "B", "SIM", "A", "C4", "T20", "RUF"]
+ignore = [
+    "SIM115",  # open() without context manager — intentional in file-upload patterns
+    "A003",    # class attribute 'type' shadows builtin — matches API field names
+]

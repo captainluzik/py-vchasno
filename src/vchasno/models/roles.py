@@ -8,6 +8,8 @@ from pydantic import BaseModel
 class Role(BaseModel):
     """A company role / employee."""
 
+    model_config = {"extra": "allow"}
+
     id: str
     status: str | None = None
     date_created: str | None = None
@@ -17,5 +19,7 @@ class Role(BaseModel):
 
 class RoleList(BaseModel):
     """Response for GET /api/v2/roles."""
+
+    model_config = {"extra": "allow"}
 
     roles: list[Role]

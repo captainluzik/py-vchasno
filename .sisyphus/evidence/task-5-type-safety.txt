@@ -1,0 +1,25 @@
+=== Task 5: Type Safety Verification ===
+
+--- Check 1: Zero -> Any in public endpoint methods ---
+PASS: No -> Any found
+
+--- Check 2: _request return type ---
+    ) -> dict[str, Any] | list[Any] | bytes | None:
+
+--- Check 3: _UNSET sentinel ---
+from vchasno._utils import UNSET as _UNSET
+from vchasno._utils import _Unset
+
+--- Check 4: No type: ignore ---
+PASS: No type: ignore found
+
+--- Check 5: StructuredData uses dict[str, Any] ---
+    details: dict[str, Any] | None = None
+    parties_information: dict[str, Any] | None = None
+    items: list[dict[str, Any]] | None = None
+    total_price: dict[str, Any] | None = None
+
+--- Check 6: No _sync/ changes ---
+src/vchasno/_sync/endpoints/_base.py
+src/vchasno/_sync/endpoints/documents.py
+src/vchasno/_sync/endpoints/signatures.py

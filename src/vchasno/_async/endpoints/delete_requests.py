@@ -12,19 +12,17 @@ from vchasno.models.documents import DeleteRequestRef
 class AsyncDeleteRequests(AsyncEndpoint):
     """Asynchronous delete-requests endpoint group."""
 
-    async def create(self, document_id: str, *, message: str) -> Any:
-        return await self._request(
-            "POST", f"/api/v2/documents/{document_id}/delete-requests", json={"message": message}
-        )
+    async def create(self, document_id: str, *, message: str) -> None:
+        await self._request("POST", f"/api/v2/documents/{document_id}/delete-requests", json={"message": message})
 
-    async def cancel(self, document_id: str) -> Any:
-        return await self._request("DELETE", f"/api/v2/documents/{document_id}/delete-requests")
+    async def cancel(self, document_id: str) -> None:
+        await self._request("DELETE", f"/api/v2/documents/{document_id}/delete-requests")
 
-    async def accept(self, document_id: str) -> Any:
-        return await self._request("POST", f"/api/v2/documents/{document_id}/delete-requests/acceptions")
+    async def accept(self, document_id: str) -> None:
+        await self._request("POST", f"/api/v2/documents/{document_id}/delete-requests/acceptions")
 
-    async def reject(self, document_id: str, *, reject_message: str) -> Any:
-        return await self._request(
+    async def reject(self, document_id: str, *, reject_message: str) -> None:
+        await self._request(
             "POST",
             f"/api/v2/documents/{document_id}/delete-requests/rejections",
             json={"reject_message": reject_message},

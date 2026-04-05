@@ -11,11 +11,13 @@ class CloudSignerSession(BaseModel):
     auth_session_id: str = Field(alias="authSessionId")
     is_mobile_logged: bool = Field(alias="isMobileLogged")
 
-    model_config = {"populate_by_name": True}
+    model_config = {"populate_by_name": True, "extra": "allow"}
 
 
 class CloudSignerSessionCheck(BaseModel):
     """Response from checking a cloud signer session."""
+
+    model_config = {"extra": "allow"}
 
     status: str
     token: str | None = None
@@ -24,27 +26,29 @@ class CloudSignerSessionCheck(BaseModel):
 class CloudSignerRefreshCheck(BaseModel):
     """Response from checking a refresh-token session."""
 
+    model_config = {"populate_by_name": True, "extra": "allow"}
+
     status: str
     access_token: str | None = Field(None, alias="accessToken")
     refresh_token: str | None = Field(None, alias="refreshToken")
     expires_in: int | None = Field(None, alias="expiresIn")
-
-    model_config = {"populate_by_name": True}
 
 
 class CloudSignerRefresh(BaseModel):
     """Response from refreshing an access token."""
 
+    model_config = {"populate_by_name": True, "extra": "allow"}
+
     status: str
     access_token: str | None = Field(None, alias="accessToken")
     refresh_token: str | None = Field(None, alias="refreshToken")
     expires_in: int | None = Field(None, alias="expiresIn")
 
-    model_config = {"populate_by_name": True}
-
 
 class SignSession(BaseModel):
     """Viewing / signing session for personal cabinet integration."""
+
+    model_config = {"extra": "allow"}
 
     id: str
     created_by: str | None = None

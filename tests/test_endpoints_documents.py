@@ -8,7 +8,8 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from vchasno.endpoints.documents import AsyncDocuments, SyncDocuments
+from vchasno._async.endpoints.documents import AsyncDocuments
+from vchasno._sync.endpoints.documents import SyncDocuments
 from vchasno.models.common import UpdatedIds
 from vchasno.models.documents import (
     Document,
@@ -135,9 +136,10 @@ class TestSyncDocuments:
 
     def test_set_flow(self):
         ep, req = self._make()
-        req.return_value = {"ok": True}
-        result = ep.set_flow("d1", [{"edrpou": "e", "order": 1}])
-        assert result == {"ok": True}
+        req.return_value = None
+        ep.set_flow("d1", [{"edrpou": "e", "order": 1}])
+        req.assert_called_once()
+        assert req.call_args.kwargs["json"] == [{"edrpou": "e", "order": 1}]
 
     def test_list_incoming(self):
         ep, req = self._make()
@@ -359,9 +361,10 @@ class TestAsyncDocuments:
     @pytest.mark.asyncio
     async def test_set_flow(self):
         ep, req = self._make()
-        req.return_value = {"ok": True}
-        result = await ep.set_flow("d1", [])
-        assert result == {"ok": True}
+        req.return_value = None
+        await ep.set_flow("d1", [{"edrpou": "e", "order": 1}])
+        req.assert_called_once()
+        assert req.call_args.kwargs["json"] == [{"edrpou": "e", "order": 1}]
 
     @pytest.mark.asyncio
     async def test_list_incoming(self):

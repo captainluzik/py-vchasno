@@ -8,11 +8,8 @@ import httpx
 import pytest
 from helpers import make_response as _make_response
 
-from vchasno._http import (
-    AsyncTransport,
-    SyncTransport,
-    _raise_for_status,
-)
+from vchasno._async._http import AsyncTransport, _raise_for_status
+from vchasno._sync._http import SyncTransport
 from vchasno.exceptions import (
     AuthenticationError,
     BadRequestError,
@@ -114,7 +111,7 @@ class TestSyncTransport:
             headers={"X-Custom": "v"},
         )
 
-    @patch("vchasno._http.time.sleep")
+    @patch("vchasno._sync._http.time.sleep")
     def test_retry_on_429(self, mock_sleep, sync_transport: SyncTransport):
         r429 = _make_response(status_code=429, content=b"rate limit")
         r200 = _make_response(status_code=200)
@@ -123,9 +120,12 @@ class TestSyncTransport:
 
         result = sync_transport.request("GET", "/retry")
         assert result.status_code == 200
-        mock_sleep.assert_called_once_with(1.0)  # 2^0 * 1
+        # Jitter: delay is random in [0, 1.0], so just verify sleep was called once
+        mock_sleep.assert_called_once()
+        delay = mock_sleep.call_args.args[0]
+        assert 0.0 <= delay <= 1.0, f"Expected delay in [0, 1.0], got {delay}"
 
-    @patch("vchasno._http.time.sleep")
+    @patch("vchasno._sync._http.time.sleep")
     def test_retry_exhausted_raises(self, mock_sleep, sync_transport: SyncTransport):
         r429 = _make_response(status_code=429, content=b"rate limit")
         sync_transport._client.request.return_value = r429
@@ -136,7 +136,7 @@ class TestSyncTransport:
         # 2 retries => sleep called twice (delays 1.0 and 2.0), then final attempt raises
         assert mock_sleep.call_count == 2
 
-    @patch("vchasno._http.time.sleep")
+    @patch("vchasno._sync._http.time.sleep")
     def test_retry_backoff_delays(self, mock_sleep, sync_transport: SyncTransport):
         r429 = _make_response(status_code=429, content=b"rate limit")
         r200 = _make_response(status_code=200)
@@ -145,7 +145,10 @@ class TestSyncTransport:
 
         sync_transport.request("GET", "/backoff")
         calls = [c.args[0] for c in mock_sleep.call_args_list]
-        assert calls == [1.0, 2.0]
+        # Jitter: delays are random in [0, max_delay] where max_delay doubles each attempt
+        assert len(calls) == 2
+        assert 0.0 <= calls[0] <= 1.0, f"Attempt 1 delay {calls[0]} not in [0, 1.0]"
+        assert 0.0 <= calls[1] <= 2.0, f"Attempt 2 delay {calls[1]} not in [0, 2.0]"
 
     def test_close(self, sync_transport: SyncTransport):
         sync_transport.close()
@@ -157,7 +160,7 @@ class TestSyncTransport:
         with pytest.raises(BadRequestError):
             sync_transport.request("GET", "/bad")
 
-    @patch("vchasno._http.time.sleep")
+    @patch("vchasno._sync._http.time.sleep")
     def test_retry_on_502(self, mock_sleep, sync_transport: SyncTransport):
         r502 = _make_response(status_code=502, content=b"gateway")
         r200 = _make_response(status_code=200)
@@ -168,7 +171,7 @@ class TestSyncTransport:
         assert result.status_code == 200
         mock_sleep.assert_called_once()
 
-    @patch("vchasno._http.time.sleep")
+    @patch("vchasno._sync._http.time.sleep")
     def test_retry_on_503(self, mock_sleep, sync_transport: SyncTransport):
         r503 = _make_response(status_code=503, content=b"unavailable")
         r200 = _make_response(status_code=200)
@@ -178,7 +181,7 @@ class TestSyncTransport:
         result = sync_transport.request("GET", "/retry-503")
         assert result.status_code == 200
 
-    @patch("vchasno._http.time.sleep")
+    @patch("vchasno._sync._http.time.sleep")
     def test_retry_on_504(self, mock_sleep, sync_transport: SyncTransport):
         r504 = _make_response(status_code=504, content=b"timeout")
         r200 = _make_response(status_code=200)
@@ -188,7 +191,7 @@ class TestSyncTransport:
         result = sync_transport.request("GET", "/retry-504")
         assert result.status_code == 200
 
-    @patch("vchasno._http.time.sleep")
+    @patch("vchasno._sync._http.time.sleep")
     def test_retry_after_header(self, mock_sleep, sync_transport: SyncTransport):
         """Retry-After header should override exponential backoff."""
         r429 = httpx.Response(429, headers={"content-type": "text/plain", "retry-after": "5"}, content=b"limit")
@@ -219,7 +222,7 @@ class TestAsyncTransport:
         assert result.status_code == 200
 
     @pytest.mark.asyncio
-    @patch("vchasno._http.asyncio.sleep", new_callable=AsyncMock)
+    @patch("vchasno._async._http.asyncio.sleep", new_callable=AsyncMock)
     async def test_retry_on_429(self, mock_sleep, async_transport: AsyncTransport):
         r429 = _make_response(status_code=429, content=b"rate limit")
         r200 = _make_response(status_code=200)
@@ -228,10 +231,13 @@ class TestAsyncTransport:
 
         result = await async_transport.request("GET", "/retry")
         assert result.status_code == 200
-        mock_sleep.assert_called_once_with(1.0)
+        # Jitter: delay is random in [0, 1.0], so just verify sleep was called once
+        mock_sleep.assert_called_once()
+        delay = mock_sleep.call_args.args[0]
+        assert 0.0 <= delay <= 1.0, f"Expected delay in [0, 1.0], got {delay}"
 
     @pytest.mark.asyncio
-    @patch("vchasno._http.asyncio.sleep", new_callable=AsyncMock)
+    @patch("vchasno._async._http.asyncio.sleep", new_callable=AsyncMock)
     async def test_retry_exhausted_raises(self, mock_sleep, async_transport: AsyncTransport):
         r429 = _make_response(status_code=429, content=b"rate limit")
         async_transport._client.request = AsyncMock(return_value=r429)
@@ -242,7 +248,7 @@ class TestAsyncTransport:
         assert mock_sleep.call_count == 2
 
     @pytest.mark.asyncio
-    @patch("vchasno._http.asyncio.sleep", new_callable=AsyncMock)
+    @patch("vchasno._async._http.asyncio.sleep", new_callable=AsyncMock)
     async def test_retry_backoff_delays(self, mock_sleep, async_transport: AsyncTransport):
         r429 = _make_response(status_code=429, content=b"rate limit")
         r200 = _make_response(status_code=200)
@@ -251,7 +257,10 @@ class TestAsyncTransport:
 
         await async_transport.request("GET", "/backoff")
         calls = [c.args[0] for c in mock_sleep.call_args_list]
-        assert calls == [1.0, 2.0]
+        # Jitter: delays are random in [0, max_delay] where max_delay doubles each attempt
+        assert len(calls) == 2
+        assert 0.0 <= calls[0] <= 1.0, f"Attempt 1 delay {calls[0]} not in [0, 1.0]"
+        assert 0.0 <= calls[1] <= 2.0, f"Attempt 2 delay {calls[1]} not in [0, 2.0]"
 
     @pytest.mark.asyncio
     async def test_close(self, async_transport: AsyncTransport):

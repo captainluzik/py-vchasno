@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, cast
 
 from vchasno._async.endpoints._base import AsyncEndpoint
 from vchasno.models.documents import Comment, CommentList
@@ -36,10 +36,10 @@ class AsyncComments(AsyncEndpoint):
         data = await self._request("GET", f"/api/v2/documents/{document_id}/comments")
         if isinstance(data, dict) and "comments" in data:
             return [Comment.model_validate(c) for c in data["comments"]]
-        return [Comment.model_validate(c) for c in data]
+        return [Comment.model_validate(c) for c in cast(list[Any], data)]
 
-    async def add(self, document_id: str, *, text: str, is_internal: bool = False) -> Any:
-        return await self._request(
+    async def add(self, document_id: str, *, text: str, is_internal: bool = False) -> None:
+        await self._request(
             "POST",
             f"/api/v2/documents/{document_id}/comments",
             json={"text": text, "is_internal": is_internal},

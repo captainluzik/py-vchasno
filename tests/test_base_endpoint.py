@@ -8,7 +8,8 @@ import httpx
 import pytest
 from helpers import make_response as _make_response
 
-from vchasno.endpoints._base import AsyncEndpoint, SyncEndpoint
+from vchasno._async.endpoints._base import AsyncEndpoint
+from vchasno._sync.endpoints._base import SyncEndpoint
 
 
 class TestSyncEndpoint:

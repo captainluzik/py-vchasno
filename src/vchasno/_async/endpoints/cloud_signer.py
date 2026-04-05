@@ -62,13 +62,20 @@ class AsyncCloudSigner(AsyncEndpoint):
         document_id: str,
         auth_session_token: str | None = None,
         access_token: str | None = None,
-    ) -> Any:
+    ) -> None:
+        """Sign a document using the cloud signer (Vchasno.KEP).
+
+        Warning:
+            ``password`` is the private-key password for your cloud signer (KEP).
+            Ensure it is never logged or printed.  The SDK does **not** log
+            request bodies, but consumer-side logging middleware may capture them.
+        """
         body: dict[str, Any] = {"client_id": client_id, "password": password, "document_id": document_id}
         if auth_session_token is not None:
             body["auth_session_token"] = auth_session_token
         if access_token is not None:
             body["access_token"] = access_token
-        return await self._request("POST", "/api/v2/cloud-signer/sessions/sign-document", json=body)
+        await self._request("POST", "/api/v2/cloud-signer/sessions/sign-document", json=body)
 
     async def create_sign_session(
         self,
@@ -76,11 +83,16 @@ class AsyncCloudSigner(AsyncEndpoint):
         document_id: str,
         edrpou: str,
         email: str,
-        type: str,
+        session_type: str,
         on_cancel_url: str | None = None,
         on_finish_url: str | None = None,
     ) -> SignSession:
-        body: dict[str, Any] = {"document_id": document_id, "edrpou": edrpou, "email": email, "type": type}
+        body: dict[str, Any] = {
+            "document_id": document_id,
+            "edrpou": edrpou,
+            "email": email,
+            "type": session_type,
+        }
         if on_cancel_url is not None:
             body["on_cancel_url"] = on_cancel_url
         if on_finish_url is not None:

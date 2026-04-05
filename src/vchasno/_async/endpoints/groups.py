@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, cast
 
 from vchasno._async.endpoints._base import AsyncEndpoint
 from vchasno.models.groups import Group, GroupMember
@@ -13,7 +13,7 @@ class AsyncGroups(AsyncEndpoint):
 
     async def list(self) -> list[Group]:
         data = await self._request("GET", "/api/v2/groups")
-        return [Group.model_validate(g) for g in data]
+        return [Group.model_validate(g) for g in cast(list[Any], data)]
 
     async def get(self, group_id: str) -> Group:
         data = await self._request("GET", f"/api/v2/groups/{group_id}")
@@ -27,18 +27,16 @@ class AsyncGroups(AsyncEndpoint):
         data = await self._request("PATCH", f"/api/v2/groups/{group_id}", json={"name": name})
         return Group.model_validate(data)
 
-    async def delete(self, group_id: str) -> Any:
-        return await self._request("DELETE", f"/api/v2/groups/{group_id}")
+    async def delete(self, group_id: str) -> None:
+        await self._request("DELETE", f"/api/v2/groups/{group_id}")
 
     async def members(self, group_id: str) -> list[GroupMember]:
         data = await self._request("GET", f"/api/v2/groups/{group_id}/members")
-        return [GroupMember.model_validate(m) for m in data]
+        return [GroupMember.model_validate(m) for m in cast(list[Any], data)]
 
     async def add_members(self, group_id: str, *, role_ids: list[str]) -> list[GroupMember]:
         data = await self._request("POST", f"/api/v2/groups/{group_id}/members", json={"role_ids": role_ids})
-        return [GroupMember.model_validate(m) for m in data]
+        return [GroupMember.model_validate(m) for m in cast(list[Any], data)]
 
-    async def remove_members(self, group_id: str, *, group_members: list[str]) -> Any:
-        return await self._request(
-            "POST", f"/api/v2/groups/{group_id}/members/remove", json={"group_members": group_members}
-        )
+    async def remove_members(self, group_id: str, *, group_members: list[str]) -> None:
+        await self._request("POST", f"/api/v2/groups/{group_id}/members/remove", json={"group_members": group_members})

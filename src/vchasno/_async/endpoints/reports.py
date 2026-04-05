@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import cast
+
 from vchasno._async.endpoints._base import AsyncEndpoint
 from vchasno.models.common import ReportRequest, ReportStatus
 
@@ -26,4 +28,4 @@ class AsyncReports(AsyncEndpoint):
         return ReportStatus.model_validate(data)
 
     async def download(self, report_id: str) -> bytes:
-        return await self._request("GET", f"/api/v2/actions/download-report/{report_id}")
+        return cast(bytes, await self._request("GET", f"/api/v2/actions/download-report/{report_id}"))

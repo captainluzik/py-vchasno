@@ -9,20 +9,34 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from vchasno.endpoints.billing import AsyncBilling, SyncBilling
-from vchasno.endpoints.categories import AsyncCategories, SyncCategories
-from vchasno.endpoints.children import AsyncChildren, SyncChildren
-from vchasno.endpoints.comments import AsyncComments, SyncComments
-from vchasno.endpoints.delete_requests import AsyncDeleteRequests, SyncDeleteRequests
-from vchasno.endpoints.fields import AsyncFields, SyncFields
-from vchasno.endpoints.groups import AsyncGroups, SyncGroups
-from vchasno.endpoints.reports import AsyncReports, SyncReports
-from vchasno.endpoints.reviews import AsyncReviews, SyncReviews
-from vchasno.endpoints.roles import AsyncRoles, SyncRoles
-from vchasno.endpoints.signatures import AsyncSignatures, SyncSignatures
-from vchasno.endpoints.tags import AsyncTags, SyncTags
-from vchasno.endpoints.templates import AsyncTemplates, SyncTemplates
-from vchasno.endpoints.versions import AsyncVersions, SyncVersions
+from vchasno._async.endpoints.billing import AsyncBilling
+from vchasno._sync.endpoints.billing import SyncBilling
+from vchasno._async.endpoints.categories import AsyncCategories
+from vchasno._sync.endpoints.categories import SyncCategories
+from vchasno._async.endpoints.children import AsyncChildren
+from vchasno._sync.endpoints.children import SyncChildren
+from vchasno._async.endpoints.comments import AsyncComments
+from vchasno._sync.endpoints.comments import SyncComments
+from vchasno._async.endpoints.delete_requests import AsyncDeleteRequests
+from vchasno._sync.endpoints.delete_requests import SyncDeleteRequests
+from vchasno._async.endpoints.fields import AsyncFields
+from vchasno._sync.endpoints.fields import SyncFields
+from vchasno._async.endpoints.groups import AsyncGroups
+from vchasno._sync.endpoints.groups import SyncGroups
+from vchasno._async.endpoints.reports import AsyncReports
+from vchasno._sync.endpoints.reports import SyncReports
+from vchasno._async.endpoints.reviews import AsyncReviews
+from vchasno._sync.endpoints.reviews import SyncReviews
+from vchasno._async.endpoints.roles import AsyncRoles
+from vchasno._sync.endpoints.roles import SyncRoles
+from vchasno._async.endpoints.signatures import AsyncSignatures
+from vchasno._sync.endpoints.signatures import SyncSignatures
+from vchasno._async.endpoints.tags import AsyncTags
+from vchasno._sync.endpoints.tags import SyncTags
+from vchasno._async.endpoints.templates import AsyncTemplates
+from vchasno._sync.endpoints.templates import SyncTemplates
+from vchasno._async.endpoints.versions import AsyncVersions
+from vchasno._sync.endpoints.versions import SyncVersions
 from vchasno.models.common import (
     CustomField,
     DocumentCategoryInfo,

@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, BinaryIO
+from typing import Any, BinaryIO, cast
 
 from vchasno._sync.endpoints._base import SyncEndpoint
+from vchasno._utils import UNSET as _UNSET
+from vchasno._utils import _Unset
 from vchasno.models.common import UpdatedIds
 from vchasno.models.documents import (
     Document,
@@ -13,9 +15,8 @@ from vchasno.models.documents import (
     DocumentStatusList,
     DownloadDocumentList,
     IncomingDocumentList,
+    StructuredData,
 )
-
-_UNSET: Any = object()
 
 
 def _collect(**kwargs: Any) -> dict[str, Any]:
@@ -109,12 +110,12 @@ class SyncDocuments(SyncEndpoint):
         self,
         document_id: str,
         *,
-        title: str = _UNSET,
-        number: str = _UNSET,
-        date: str = _UNSET,
-        amount: int = _UNSET,
-        category: int = _UNSET,
-        first_sign_by: str = _UNSET,
+        title: str | _Unset = _UNSET,
+        number: str | _Unset = _UNSET,
+        date: str | _Unset = _UNSET,
+        amount: int | _Unset = _UNSET,
+        category: int | _Unset = _UNSET,
+        first_sign_by: str | _Unset = _UNSET,
         **extra: Any,
     ) -> Document:
         body = _collect(
@@ -205,32 +206,32 @@ class SyncDocuments(SyncEndpoint):
 
     def download_original(self, document_id: str, *, version: str | None = None) -> bytes:
         params = {"version": version} if version is not None else None
-        return self._request("GET", f"/api/v2/documents/{document_id}/original", params=params)
+        return cast(bytes, self._request("GET", f"/api/v2/documents/{document_id}/original", params=params))
 
     def download_archive(self, document_id: str) -> bytes:
-        return self._request("GET", f"/api/v2/documents/{document_id}/archive")
+        return cast(bytes, self._request("GET", f"/api/v2/documents/{document_id}/archive"))
 
     def download_p7s(self, document_id: str) -> bytes:
-        return self._request("GET", f"/api/v2/documents/{document_id}/p7s")
+        return cast(bytes, self._request("GET", f"/api/v2/documents/{document_id}/p7s"))
 
     def download_asic(self, document_id: str) -> bytes:
-        return self._request("GET", f"/api/v2/documents/{document_id}/asic")
+        return cast(bytes, self._request("GET", f"/api/v2/documents/{document_id}/asic"))
 
     def download_documents(self, ids: list[str]) -> DownloadDocumentList:
-        params = [("ids", i) for i in ids]  # type: ignore[attr-defined]
+        params = [("ids", i) for i in ids]
         data = self._request("GET", "/api/v2/download-documents", params=params)
         return DownloadDocumentList.model_validate(data)
 
     # -- conversion / print ---------------------------------------------
 
-    def xml_to_pdf_create(self, document_id: str, *, force: bool = False) -> Any:
-        return self._request("POST", f"/api/v2/documents/{document_id}/xml-to-pdf", json={"force": force})
+    def xml_to_pdf_create(self, document_id: str, *, force: bool = False) -> None:
+        self._request("POST", f"/api/v2/documents/{document_id}/xml-to-pdf", json={"force": force})
 
     def xml_to_pdf_download(self, document_id: str) -> bytes:
-        return self._request("GET", f"/api/v2/documents/{document_id}/xml-to-pdf")
+        return cast(bytes, self._request("GET", f"/api/v2/documents/{document_id}/xml-to-pdf"))
 
     def pdf_print(self, document_id: str) -> bytes:
-        return self._request("GET", f"/api/v2/documents/{document_id}/pdf/print")
+        return cast(bytes, self._request("GET", f"/api/v2/documents/{document_id}/pdf/print"))
 
     # -- status / actions -----------------------------------------------
 
@@ -238,29 +239,34 @@ class SyncDocuments(SyncEndpoint):
         data = self._request("POST", "/api/v2/documents/statuses", json={"document_ids": document_ids})
         return DocumentStatusList.model_validate(data)
 
-    def reject(self, document_id: str, *, text: str) -> Any:
-        return self._request("POST", f"/api/v2/documents/{document_id}/reject", json={"text": text})
+    def reject(self, document_id: str, *, text: str) -> None:
+        self._request("POST", f"/api/v2/documents/{document_id}/reject", json={"text": text})
 
-    def send(self, document_id: str) -> Any:
-        return self._request("POST", f"/api/v2/documents/{document_id}/send")
+    def send(self, document_id: str) -> None:
+        self._request("POST", f"/api/v2/documents/{document_id}/send")
 
-    def delete(self, document_id: str) -> Any:
-        return self._request("DELETE", f"/api/v2/documents/{document_id}")
+    def delete(self, document_id: str) -> None:
+        self._request("DELETE", f"/api/v2/documents/{document_id}")
 
-    def archive(self, document_ids: list[str], *, directory_id: str | None = None) -> Any:
+    def archive(self, document_ids: list[str], *, directory_id: str | None = None) -> None:
         body: dict[str, Any] = {"document_ids": document_ids}
         if directory_id is not None:
             body["directory_id"] = directory_id
-        return self._request("POST", "/api/v2/documents/archive", json=body)
+        self._request("POST", "/api/v2/documents/archive", json=body)
 
-    def unarchive(self, document_ids: list[str]) -> Any:
-        return self._request("DELETE", "/api/v2/documents/archive", json={"document_ids": document_ids})
+    def unarchive(self, document_ids: list[str]) -> None:
+        self._request("DELETE", "/api/v2/documents/archive", json={"document_ids": document_ids})
 
     def mark_as_processed(self, document_ids: list[str]) -> UpdatedIds:
         data = self._request("POST", "/api/v2/documents/mark-as-processed", json={"document_ids": document_ids})
         return UpdatedIds.model_validate(data)
 
-    def structured_data_download(self, document_id: str, *, output_format: str = "json") -> Any:
-        return self._request(
+    def structured_data_download(
+        self, document_id: str, *, output_format: str = "json"
+    ) -> StructuredData | bytes:
+        data = self._request(
             "GET", f"/api/v2/documents/{document_id}/structured-data/download", params={"format": output_format}
         )
+        if isinstance(data, bytes):
+            return data
+        return StructuredData.model_validate(data)

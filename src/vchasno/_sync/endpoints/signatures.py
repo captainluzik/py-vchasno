@@ -15,11 +15,11 @@ class SyncSignatures(SyncEndpoint):
         data = self._request("GET", f"/api/v2/documents/{document_id}/signatures")
         return [SignatureDetail.model_validate(s) for s in data]
 
-    def add(self, document_id: str, *, signature: str, stamp: str | None = None) -> Any:
+    def add(self, document_id: str, *, signature: str, stamp: str | None = None) -> None:
         body: dict[str, Any] = {"signature": signature}
         if stamp is not None:
             body["stamp"] = stamp
-        return self._request("POST", f"/api/v2/documents/{document_id}/signatures", json=body)
+        self._request("POST", f"/api/v2/documents/{document_id}/signatures", json=body)
 
     def flows(self, document_id: str) -> list[FlowEntry]:
         data = self._request("GET", f"/api/v2/documents/{document_id}/flows")

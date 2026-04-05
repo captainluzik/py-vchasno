@@ -8,6 +8,8 @@ from pydantic import BaseModel
 class ArchiveDirectory(BaseModel):
     """An archive directory / folder."""
 
+    model_config = {"extra": "allow"}
+
     id: int
     parent_id: int | None = None
     name: str
@@ -16,6 +18,8 @@ class ArchiveDirectory(BaseModel):
 
 class ArchiveDirectoryList(BaseModel):
     """Paginated list of archive directories."""
+
+    model_config = {"extra": "allow"}
 
     directories: list[ArchiveDirectory]
     next_cursor: str | None = None
@@ -33,11 +37,15 @@ class ArchiveScanDocument(BaseModel):
 class ArchiveScanResult(BaseModel):
     """Result of uploading scans."""
 
+    model_config = {"extra": "allow"}
+
     documents: list[ArchiveScanDocument]
 
 
 class ArchiveImportSignedResult(BaseModel):
     """Result of importing a signed document into the archive."""
+
+    model_config = {"extra": "allow"}
 
     document_id: str
     signature_count: int

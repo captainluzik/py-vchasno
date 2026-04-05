@@ -8,7 +8,8 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from vchasno.endpoints.archive import AsyncArchive, SyncArchive
+from vchasno._async.endpoints.archive import AsyncArchive
+from vchasno._sync.endpoints.archive import SyncArchive
 from vchasno.models.archive import ArchiveDirectoryList, ArchiveImportSignedResult, ArchiveScanResult
 
 DIRS_DATA = {"directories": [{"id": 1, "name": "Dir"}], "next_cursor": None}

@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, BinaryIO
+from typing import Any, BinaryIO, cast
 
 from vchasno._async.endpoints._base import AsyncEndpoint
+from vchasno._utils import UNSET as _UNSET
+from vchasno._utils import _Unset, collect_params, collect_update
 from vchasno.models.common import UpdatedIds
 from vchasno.models.documents import (
     Document,
@@ -13,14 +15,8 @@ from vchasno.models.documents import (
     DocumentStatusList,
     DownloadDocumentList,
     IncomingDocumentList,
+    StructuredData,
 )
-
-_UNSET: Any = object()
-
-
-def _collect(**kwargs: Any) -> dict[str, Any]:
-    """Build a params dict dropping *_UNSET* and *None* values."""
-    return {k: v for k, v in kwargs.items() if v is not _UNSET and v is not None}
 
 
 class AsyncDocuments(AsyncEndpoint):
@@ -44,7 +40,7 @@ class AsyncDocuments(AsyncEndpoint):
         sd_status: str | None = None,
         **extra: Any,
     ) -> DocumentList:
-        params = _collect(
+        params = collect_params(
             status=status,
             cursor=cursor,
             limit=limit,
@@ -75,11 +71,25 @@ class AsyncDocuments(AsyncEndpoint):
         *,
         filename: str | None = None,
         category: int | None = None,
+        recipient_edrpou: str | None = None,
         edrpou: str | None = None,
         email: str | None = None,
         title: str | None = None,
         **extra: Any,
     ) -> DocumentList:
+        """Upload a document.
+
+        Args:
+            file: Path or file object to upload.
+            filename: Override the filename sent in multipart form-data.
+            category: Document category ID.
+            recipient_edrpou: Recipient EDRPOU code.
+            edrpou: **Deprecated** — use *recipient_edrpou* instead.
+            email: Recipient email.
+            title: Document title.
+            **extra: Additional query parameters forwarded to the API.
+        """
+        resolved_edrpou = recipient_edrpou or edrpou
         opened: BinaryIO | None = None
         if isinstance(file, (str, Path)):
             path = Path(file)
@@ -90,9 +100,9 @@ class AsyncDocuments(AsyncEndpoint):
             filename = filename or "document"
         try:
             files = [("file", (filename, fp))]
-            query = _collect(
+            query = collect_params(
                 category=category,
-                edrpou=edrpou,
+                edrpou=resolved_edrpou,
                 email=email,
                 title=title,
                 **extra,
@@ -109,23 +119,23 @@ class AsyncDocuments(AsyncEndpoint):
         self,
         document_id: str,
         *,
-        title: str = _UNSET,
-        number: str = _UNSET,
-        date: str = _UNSET,
-        amount: int = _UNSET,
-        category: int = _UNSET,
-        first_sign_by: str = _UNSET,
+        title: str | None | _Unset = _UNSET,
+        number: str | None | _Unset = _UNSET,
+        date: str | None | _Unset = _UNSET,
+        amount: int | None | _Unset = _UNSET,
+        category: int | None | _Unset = _UNSET,
+        first_sign_by: str | None | _Unset = _UNSET,
         **extra: Any,
     ) -> Document:
-        body = _collect(
+        body = collect_update(
             title=title,
             number=number,
             date=date,
             amount=amount,
             category=category,
             first_sign_by=first_sign_by,
-            **extra,
         )
+        body.update(extra)
         data = await self._request("PATCH", f"/api/v2/documents/{document_id}/info", json=body)
         return Document.model_validate(data)
 
@@ -154,13 +164,13 @@ class AsyncDocuments(AsyncEndpoint):
 
     # -- flow / signers -------------------------------------------------
 
-    async def set_flow(self, document_id: str, flow: list[dict[str, Any]]) -> Any:
-        return await self._request("POST", f"/api/v2/documents/{document_id}/flow", json=flow)
+    async def set_flow(self, document_id: str, flow: list[dict[str, Any]]) -> None:
+        await self._request("POST", f"/api/v2/documents/{document_id}/flow", json=flow)
 
     async def set_signers(
         self, document_id: str, *, signer_entities: list[dict[str, str]], is_parallel: bool = True
-    ) -> Any:
-        return await self._request(
+    ) -> None:
+        await self._request(
             "POST",
             f"/api/v2/documents/{document_id}/signers",
             json={"signer_entities": signer_entities, "is_parallel": is_parallel},
@@ -184,7 +194,7 @@ class AsyncDocuments(AsyncEndpoint):
         sd_status: str | None = None,
         **extra: Any,
     ) -> IncomingDocumentList:
-        params = _collect(
+        params = collect_params(
             status=status,
             cursor=cursor,
             limit=limit,
@@ -205,62 +215,70 @@ class AsyncDocuments(AsyncEndpoint):
 
     async def download_original(self, document_id: str, *, version: str | None = None) -> bytes:
         params = {"version": version} if version is not None else None
-        return await self._request("GET", f"/api/v2/documents/{document_id}/original", params=params)
+        return cast(bytes, await self._request("GET", f"/api/v2/documents/{document_id}/original", params=params))
 
-    async def download_archive(self, document_id: str) -> bytes:
-        return await self._request("GET", f"/api/v2/documents/{document_id}/archive")
+    async def download_archive(self, document_id: str, *, with_instruction: int | None = None) -> bytes:
+        params = {"with_instruction": with_instruction} if with_instruction is not None else None
+        return cast(bytes, await self._request("GET", f"/api/v2/documents/{document_id}/archive", params=params))
 
     async def download_p7s(self, document_id: str) -> bytes:
-        return await self._request("GET", f"/api/v2/documents/{document_id}/p7s")
+        return cast(bytes, await self._request("GET", f"/api/v2/documents/{document_id}/p7s"))
 
     async def download_asic(self, document_id: str) -> bytes:
-        return await self._request("GET", f"/api/v2/documents/{document_id}/asic")
+        return cast(bytes, await self._request("GET", f"/api/v2/documents/{document_id}/asic"))
 
     async def download_documents(self, ids: list[str]) -> DownloadDocumentList:
-        params = [("ids", i) for i in ids]  # type: ignore[attr-defined]
+        params = [("ids", i) for i in ids]
         data = await self._request("GET", "/api/v2/download-documents", params=params)
         return DownloadDocumentList.model_validate(data)
 
     # -- conversion / print ---------------------------------------------
 
-    async def xml_to_pdf_create(self, document_id: str, *, force: bool = False) -> Any:
-        return await self._request("POST", f"/api/v2/documents/{document_id}/xml-to-pdf", json={"force": force})
+    async def xml_to_pdf_create(self, document_id: str, *, force: bool = False) -> None:
+        await self._request("POST", f"/api/v2/documents/{document_id}/xml-to-pdf", json={"force": force})
 
     async def xml_to_pdf_download(self, document_id: str) -> bytes:
-        return await self._request("GET", f"/api/v2/documents/{document_id}/xml-to-pdf")
+        return cast(bytes, await self._request("GET", f"/api/v2/documents/{document_id}/xml-to-pdf"))
 
     async def pdf_print(self, document_id: str) -> bytes:
-        return await self._request("GET", f"/api/v2/documents/{document_id}/pdf/print")
+        return cast(bytes, await self._request("GET", f"/api/v2/documents/{document_id}/pdf/print"))
 
     # -- status / actions -----------------------------------------------
 
     async def statuses(self, document_ids: list[str]) -> DocumentStatusList:
+        if len(document_ids) > 500:
+            raise ValueError("Maximum 500 document IDs per request")
         data = await self._request("POST", "/api/v2/documents/statuses", json={"document_ids": document_ids})
         return DocumentStatusList.model_validate(data)
 
-    async def reject(self, document_id: str, *, text: str) -> Any:
-        return await self._request("POST", f"/api/v2/documents/{document_id}/reject", json={"text": text})
+    async def reject(self, document_id: str, *, text: str) -> None:
+        await self._request("POST", f"/api/v2/documents/{document_id}/reject", json={"text": text})
 
-    async def send(self, document_id: str) -> Any:
-        return await self._request("POST", f"/api/v2/documents/{document_id}/send")
+    async def send(self, document_id: str) -> None:
+        await self._request("POST", f"/api/v2/documents/{document_id}/send")
 
-    async def delete(self, document_id: str) -> Any:
-        return await self._request("DELETE", f"/api/v2/documents/{document_id}")
+    async def delete(self, document_id: str) -> None:
+        await self._request("DELETE", f"/api/v2/documents/{document_id}")
 
-    async def archive(self, document_ids: list[str], *, directory_id: str | None = None) -> Any:
+    async def archive(self, document_ids: list[str], *, directory_id: str | None = None) -> None:
         body: dict[str, Any] = {"document_ids": document_ids}
         if directory_id is not None:
             body["directory_id"] = directory_id
-        return await self._request("POST", "/api/v2/documents/archive", json=body)
+        await self._request("POST", "/api/v2/documents/archive", json=body)
 
-    async def unarchive(self, document_ids: list[str]) -> Any:
-        return await self._request("DELETE", "/api/v2/documents/archive", json={"document_ids": document_ids})
+    async def unarchive(self, document_ids: list[str]) -> None:
+        await self._request("DELETE", "/api/v2/documents/archive", json={"document_ids": document_ids})
 
     async def mark_as_processed(self, document_ids: list[str]) -> UpdatedIds:
         data = await self._request("POST", "/api/v2/documents/mark-as-processed", json={"document_ids": document_ids})
         return UpdatedIds.model_validate(data)
 
-    async def structured_data_download(self, document_id: str, *, output_format: str = "json") -> Any:
-        return await self._request(
+    async def structured_data_download(
+        self, document_id: str, *, output_format: str = "json"
+    ) -> StructuredData | bytes:
+        data = await self._request(
             "GET", f"/api/v2/documents/{document_id}/structured-data/download", params={"format": output_format}
         )
+        if isinstance(data, bytes):
+            return data
+        return StructuredData.model_validate(data)

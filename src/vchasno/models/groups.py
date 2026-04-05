@@ -8,6 +8,8 @@ from pydantic import BaseModel
 class Group(BaseModel):
     """A user group / team."""
 
+    model_config = {"extra": "allow"}
+
     id: str
     name: str
     created_by: str | None = None
@@ -17,6 +19,8 @@ class Group(BaseModel):
 
 class GroupMember(BaseModel):
     """A member of a group."""
+
+    model_config = {"extra": "allow"}
 
     id: str
     role_id: str
