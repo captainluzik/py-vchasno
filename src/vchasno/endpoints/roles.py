@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from vchasno.endpoints._base import AsyncEndpoint, SyncEndpoint
-from vchasno.models.roles import Role, RoleList
+from vchasno.models.roles import RoleList
 
 
 class SyncRoles(SyncEndpoint):
@@ -28,23 +28,31 @@ class SyncRoles(SyncEndpoint):
         """POST /api/v2/invite/coworkers."""
         return self._request("POST", "/api/v2/invite/coworkers", json={"emails": emails})
 
-    def create_coworker(self, *, email: str, first_name: str | None = None, second_name: str | None = None, last_name: str | None = None, phone: str | None = None) -> Any:
+    def create_coworker(
+        self,
+        *,
+        email: str,
+        first_name: str | None = None,
+        second_name: str | None = None,
+        last_name: str | None = None,
+        phone: str | None = None,
+    ) -> Any:
         """POST /api/v2/coworker."""
         body: dict[str, Any] = {"email": email}
-        if first_name:
+        if first_name is not None:
             body["first_name"] = first_name
-        if second_name:
+        if second_name is not None:
             body["second_name"] = second_name
-        if last_name:
+        if last_name is not None:
             body["last_name"] = last_name
-        if phone:
+        if phone is not None:
             body["phone"] = phone
         return self._request("POST", "/api/v2/coworker", json=body)
 
     def create_tokens(self, *, emails: list[str], expire_days: str | None = None) -> Any:
         """POST /api/v2/tokens."""
         body: dict[str, Any] = {"emails": emails}
-        if expire_days:
+        if expire_days is not None:
             body["expire_days"] = expire_days
         return self._request("POST", "/api/v2/tokens", json=body)
 
@@ -69,21 +77,29 @@ class AsyncRoles(AsyncEndpoint):
     async def invite_coworkers(self, *, emails: list[str]) -> Any:
         return await self._request("POST", "/api/v2/invite/coworkers", json={"emails": emails})
 
-    async def create_coworker(self, *, email: str, first_name: str | None = None, second_name: str | None = None, last_name: str | None = None, phone: str | None = None) -> Any:
+    async def create_coworker(
+        self,
+        *,
+        email: str,
+        first_name: str | None = None,
+        second_name: str | None = None,
+        last_name: str | None = None,
+        phone: str | None = None,
+    ) -> Any:
         body: dict[str, Any] = {"email": email}
-        if first_name:
+        if first_name is not None:
             body["first_name"] = first_name
-        if second_name:
+        if second_name is not None:
             body["second_name"] = second_name
-        if last_name:
+        if last_name is not None:
             body["last_name"] = last_name
-        if phone:
+        if phone is not None:
             body["phone"] = phone
         return await self._request("POST", "/api/v2/coworker", json=body)
 
     async def create_tokens(self, *, emails: list[str], expire_days: str | None = None) -> Any:
         body: dict[str, Any] = {"emails": emails}
-        if expire_days:
+        if expire_days is not None:
             body["expire_days"] = expire_days
         return await self._request("POST", "/api/v2/tokens", json=body)
 

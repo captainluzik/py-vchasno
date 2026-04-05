@@ -10,9 +10,13 @@ from vchasno.exceptions import (
     VchasnoError,
 )
 
+__version__ = "0.1.1"
+
 __all__ = [
+    # clients
     "AsyncVchasno",
     "Vchasno",
+    # exceptions
     "VchasnoError",
     "VchasnoAPIError",
     "AuthenticationError",

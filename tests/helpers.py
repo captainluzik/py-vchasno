@@ -17,8 +17,5 @@ def make_response(
 ) -> httpx.Response:
     """Build a fake httpx.Response."""
     headers = {"content-type": content_type}
-    if json_data is not None:
-        raw = _json.dumps(json_data).encode()
-    else:
-        raw = content
+    raw = _json.dumps(json_data).encode() if json_data is not None else content
     return httpx.Response(status_code, headers=headers, content=raw)

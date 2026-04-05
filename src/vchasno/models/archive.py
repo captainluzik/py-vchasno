@@ -21,10 +21,19 @@ class ArchiveDirectoryList(BaseModel):
     next_cursor: str | None = None
 
 
+class ArchiveScanDocument(BaseModel):
+    """A document created from an uploaded scan."""
+
+    id: str | None = None
+    title: str | None = None
+
+    model_config = {"extra": "allow"}
+
+
 class ArchiveScanResult(BaseModel):
     """Result of uploading scans."""
 
-    documents: list[dict]
+    documents: list[ArchiveScanDocument]
 
 
 class ArchiveImportSignedResult(BaseModel):

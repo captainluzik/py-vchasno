@@ -36,9 +36,9 @@ class SyncReviews(SyncEndpoint):
     ) -> Any:
         """POST /api/v2/documents/{id}/reviews/requests."""
         body: dict[str, Any] = {"is_parallel": is_parallel}
-        if user_to_email:
+        if user_to_email is not None:
             body["user_to_email"] = user_to_email
-        if group_to_name:
+        if group_to_name is not None:
             body["group_to_name"] = group_to_name
         return self._request("POST", f"/api/v2/documents/{document_id}/reviews/requests", json=body)
 
@@ -51,9 +51,9 @@ class SyncReviews(SyncEndpoint):
     ) -> Any:
         """DELETE /api/v2/documents/{id}/reviews/requests."""
         body: dict[str, Any] = {}
-        if user_to_email:
+        if user_to_email is not None:
             body["user_to_email"] = user_to_email
-        if group_to_name:
+        if group_to_name is not None:
             body["group_to_name"] = group_to_name
         return self._request("DELETE", f"/api/v2/documents/{document_id}/reviews/requests", json=body)
 
@@ -82,9 +82,9 @@ class AsyncReviews(AsyncEndpoint):
         is_parallel: bool = True,
     ) -> Any:
         body: dict[str, Any] = {"is_parallel": is_parallel}
-        if user_to_email:
+        if user_to_email is not None:
             body["user_to_email"] = user_to_email
-        if group_to_name:
+        if group_to_name is not None:
             body["group_to_name"] = group_to_name
         return await self._request("POST", f"/api/v2/documents/{document_id}/reviews/requests", json=body)
 
@@ -96,8 +96,8 @@ class AsyncReviews(AsyncEndpoint):
         group_to_name: str | None = None,
     ) -> Any:
         body: dict[str, Any] = {}
-        if user_to_email:
+        if user_to_email is not None:
             body["user_to_email"] = user_to_email
-        if group_to_name:
+        if group_to_name is not None:
             body["group_to_name"] = group_to_name
         return await self._request("DELETE", f"/api/v2/documents/{document_id}/reviews/requests", json=body)

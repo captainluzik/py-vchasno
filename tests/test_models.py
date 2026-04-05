@@ -2,6 +2,19 @@
 
 from __future__ import annotations
 
+from vchasno.models.archive import (
+    ArchiveDirectory,
+    ArchiveDirectoryList,
+    ArchiveImportSignedResult,
+    ArchiveScanResult,
+)
+from vchasno.models.cloud_signer import (
+    CloudSignerRefresh,
+    CloudSignerRefreshCheck,
+    CloudSignerSession,
+    CloudSignerSessionCheck,
+    SignSession,
+)
 from vchasno.models.common import (
     CompanyCheck,
     CompanyCheckUpload,
@@ -34,22 +47,6 @@ from vchasno.models.documents import (
     StructuredData,
     Version,
 )
-from vchasno.models.groups import Group, GroupMember
-from vchasno.models.cloud_signer import (
-    CloudSignerRefresh,
-    CloudSignerRefreshCheck,
-    CloudSignerSession,
-    CloudSignerSessionCheck,
-    SignSession,
-)
-from vchasno.models.tags import Tag, TagList, TagRole, TagRoleList
-from vchasno.models.archive import (
-    ArchiveDirectory,
-    ArchiveDirectoryList,
-    ArchiveImportSignedResult,
-    ArchiveScanResult,
-)
-from vchasno.models.roles import Role, RoleList
 from vchasno.models.enums import (
     AccessSettingsLevel,
     CloudSignerSessionStatus,
@@ -63,11 +60,14 @@ from vchasno.models.enums import (
     UserRole,
     ViewersStrategy,
 )
-
+from vchasno.models.groups import Group, GroupMember
+from vchasno.models.roles import Role, RoleList
+from vchasno.models.tags import Tag, TagList, TagRole, TagRoleList
 
 # ---------------------------------------------------------------------------
 # Common models
 # ---------------------------------------------------------------------------
+
 
 class TestDocumentCategoryInfo:
     def test_required_fields(self):
@@ -78,7 +78,9 @@ class TestDocumentCategoryInfo:
         assert m.date_updated is None
 
     def test_all_fields(self):
-        m = DocumentCategoryInfo(category_id=2, category_title="X", is_public=False, date_updated="2024-01-01", date_created="2024-01-01")
+        m = DocumentCategoryInfo(
+            category_id=2, category_title="X", is_public=False, date_updated="2024-01-01", date_created="2024-01-01"
+        )
         assert m.date_updated == "2024-01-01"
 
 
@@ -99,7 +101,9 @@ class TestDocumentField:
         assert m.value is None
 
     def test_all(self):
-        m = DocumentField(field_id="1", name="f", type="text", is_required=False, value="v", date_updated="d", date_created="c")
+        m = DocumentField(
+            field_id="1", name="f", type="text", is_required=False, value="v", date_updated="d", date_created="c"
+        )
         assert m.value == "v"
 
 
@@ -109,8 +113,19 @@ class TestTemplate:
         assert m.review_settings is None
 
     def test_full(self):
-        m = Template(id="1", name="t", review_settings={"a": 1}, signers_settings={}, viewers_settings={}, fields_settings={}, tags_settings={}, created_by="u", date_created="d", date_updated="d")
-        assert m.review_settings == {"a": 1}
+        m = Template(
+            id="1",
+            name="t",
+            review_settings={"a": 1},
+            signers_settings={},
+            viewers_settings={},
+            fields_settings={},
+            tags_settings={},
+            created_by="u",
+            date_created="d",
+            date_updated="d",
+        )
+        assert m.review_settings is not None
 
 
 class TestReportRequest:
@@ -142,7 +157,9 @@ class TestCompanyCheckUpload:
 
     def test_full(self):
         c = CompanyCheck(edrpou="1", name="x", is_registered=False)
-        m = CompanyCheckUpload(companies=[c], percentage="100", invalid_row_numbers=["1"], rows_invalid="1", rows_total="2")
+        m = CompanyCheckUpload(
+            companies=[c], percentage="100", invalid_row_numbers=["1"], rows_invalid="1", rows_total="2"
+        )
         assert len(m.companies) == 1
 
 
@@ -155,6 +172,7 @@ class TestUpdatedIds:
 # ---------------------------------------------------------------------------
 # Document models
 # ---------------------------------------------------------------------------
+
 
 class TestSignature:
     def test_minimal(self):
@@ -172,7 +190,19 @@ class TestSignatureDetail:
         assert m.edrpou is None
 
     def test_full(self):
-        m = SignatureDetail(id="s1", edrpou="e", company_name="c", is_internal=True, role_id="r", signer_name="n", signer_position="p", serial_number="sn", timestamp="t", has_stamp=True, stamp={"k": "v"})
+        m = SignatureDetail(
+            id="s1",
+            edrpou="e",
+            company_name="c",
+            is_internal=True,
+            role_id="r",
+            signer_name="n",
+            signer_position="p",
+            serial_number="sn",
+            timestamp="t",
+            has_stamp=True,
+            stamp={"k": "v"},
+        )
         assert m.has_stamp is True
 
 
@@ -203,15 +233,39 @@ class TestDocument:
 
     def test_full(self):
         m = Document(
-            id="d1", vendor="v", vendor_id="vi", status=7008, status_text="Signed",
-            signatures_to_finish=0, first_sign_by="owner", extension="pdf",
-            signatures=[], title="Doc", type="contract", amount=100,
-            date="2024-01-01", date_created="c", date_finished="f",
-            date_delivered="d", number="N1", preview_url="pu", url="u",
-            is_multilateral=False, category=1, category_details={},
-            is_delivered=True, is_archived=False, is_internal=False,
-            sd_status="confirmed", tags=[], recipients=[], fields=[],
-            versions=[], parent=None, children=[], delete_requests=[],
+            id="d1",
+            vendor="v",
+            vendor_id="vi",
+            status=7008,
+            status_text="Signed",
+            signatures_to_finish=0,
+            first_sign_by="owner",
+            extension="pdf",
+            signatures=[],
+            title="Doc",
+            type="contract",
+            amount=100,
+            date="2024-01-01",
+            date_created="c",
+            date_finished="f",
+            date_delivered="d",
+            number="N1",
+            preview_url="pu",
+            url="u",
+            is_multilateral=False,
+            category=1,
+            category_details={},
+            is_delivered=True,
+            is_archived=False,
+            is_internal=False,
+            sd_status="confirmed",
+            tags=[],
+            recipients=[],
+            fields=[],
+            versions=[],
+            parent=None,
+            children=[],
+            delete_requests=[],
             access_settings={},
         )
         assert m.status == 7008
@@ -235,15 +289,39 @@ class TestIncomingDocument:
 
     def test_full(self):
         m = IncomingDocument(
-            id="i1", extension="pdf", title="T", type="t", number="N",
-            status=7000, status_text="st", edrpou_owner="e", amount=1,
-            company_name="cn", signatures_to_finish=0, first_sign_by="owner",
-            date="d", date_created="dc", date_delivered="dd", date_finished="df",
-            is_delivered=True, category=1, category_details={},
-            signatures=[], preview_url="p", url="u", parent=None,
-            children=[], recipients=[], fields=[], versions=[],
-            is_multilateral=False, is_archived=False, sd_status="s",
-            tags=[], delete_requests=[], access_settings={},
+            id="i1",
+            extension="pdf",
+            title="T",
+            type="t",
+            number="N",
+            status=7000,
+            status_text="st",
+            edrpou_owner="e",
+            amount=1,
+            company_name="cn",
+            signatures_to_finish=0,
+            first_sign_by="owner",
+            date="d",
+            date_created="dc",
+            date_delivered="dd",
+            date_finished="df",
+            is_delivered=True,
+            category=1,
+            category_details={},
+            signatures=[],
+            preview_url="p",
+            url="u",
+            parent=None,
+            children=[],
+            recipients=[],
+            fields=[],
+            versions=[],
+            is_multilateral=False,
+            is_archived=False,
+            sd_status="s",
+            tags=[],
+            delete_requests=[],
+            access_settings={},
         )
         assert m.company_name == "cn"
 
@@ -260,7 +338,9 @@ class TestDownloadDocument:
         assert m.extension is None
 
     def test_full(self):
-        m = DownloadDocument(id="d1", extension="pdf", archive_url="a", original_url="o", status=200, xml_to_pdf_url="x")
+        m = DownloadDocument(
+            id="d1", extension="pdf", archive_url="a", original_url="o", status=200, xml_to_pdf_url="x"
+        )
         assert m.archive_url == "a"
 
 
@@ -288,8 +368,19 @@ class TestComment:
         assert m.text is None
 
     def test_full(self):
-        m = Comment(id="c1", text="hi", document_id="d1", date_created="d", email="e", edrpou="e", is_internal=False, type="t", author={"name": "N"})
-        assert m.author == {"name": "N"}
+        m = Comment(
+            id="c1",
+            text="hi",
+            document_id="d1",
+            date_created="d",
+            email="e",
+            edrpou="e",
+            is_internal=False,
+            type="t",
+            author={"name": "N"},
+        )
+        assert m.author is not None
+        assert m.author.name == "N"
 
 
 class TestCommentList:
@@ -344,6 +435,7 @@ class TestStructuredData:
 # Group models
 # ---------------------------------------------------------------------------
 
+
 class TestGroup:
     def test_minimal(self):
         m = Group(id="g1", name="G")
@@ -363,6 +455,7 @@ class TestGroupMember:
 # ---------------------------------------------------------------------------
 # Cloud signer models
 # ---------------------------------------------------------------------------
+
 
 class TestCloudSignerSession:
     def test_with_alias(self):
@@ -413,12 +506,24 @@ class TestSignSession:
 
     def test_full(self):
         m = SignSession(
-            id="ss1", created_by="u", document_id="d", document_status="s",
-            edrpou="e", email="e@e.com", is_legal=True, on_cancel_url="c",
-            on_finish_url="f", on_document_comment_hook="ch",
-            on_document_reject_hook="rh", on_document_sign_hook="sh",
-            on_document_view_hook="vh", role_id="r", status="active",
-            type="sign_session", url="u", vendor="v",
+            id="ss1",
+            created_by="u",
+            document_id="d",
+            document_status="s",
+            edrpou="e",
+            email="e@e.com",
+            is_legal=True,
+            on_cancel_url="c",
+            on_finish_url="f",
+            on_document_comment_hook="ch",
+            on_document_reject_hook="rh",
+            on_document_sign_hook="sh",
+            on_document_view_hook="vh",
+            role_id="r",
+            status="active",
+            type="sign_session",
+            url="u",
+            vendor="v",
         )
         assert m.is_legal is True
 
@@ -426,6 +531,7 @@ class TestSignSession:
 # ---------------------------------------------------------------------------
 # Tag models
 # ---------------------------------------------------------------------------
+
 
 class TestTag:
     def test_fields(self):
@@ -463,6 +569,7 @@ class TestTagRoleList:
 # Archive models
 # ---------------------------------------------------------------------------
 
+
 class TestArchiveDirectory:
     def test_fields(self):
         m = ArchiveDirectory(id=1, name="Dir")
@@ -495,6 +602,7 @@ class TestArchiveImportSignedResult:
 # Role models
 # ---------------------------------------------------------------------------
 
+
 class TestRole:
     def test_minimal(self):
         m = Role(id="r1")
@@ -514,6 +622,7 @@ class TestRoleList:
 # ---------------------------------------------------------------------------
 # Enums
 # ---------------------------------------------------------------------------
+
 
 class TestEnums:
     def test_document_status(self):

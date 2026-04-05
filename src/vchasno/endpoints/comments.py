@@ -11,10 +11,26 @@ from vchasno.models.documents import Comment, CommentList
 class SyncComments(SyncEndpoint):
     """Synchronous comments endpoint group."""
 
-    def list(self, **filters: Any) -> CommentList:
+    def list(
+        self,
+        *,
+        cursor: str | None = None,
+        limit: int | None = None,
+        document_id: str | None = None,
+        **extra: Any,
+    ) -> CommentList:
         """GET /api/v2/documents/comments."""
-        params = {k: v for k, v in filters.items() if v is not None}
-        data = self._request("GET", "/api/v2/documents/comments", params=params)
+        params = {
+            k: v
+            for k, v in {
+                "cursor": cursor,
+                "limit": limit,
+                "document_id": document_id,
+                **extra,
+            }.items()
+            if v is not None
+        }
+        data = self._request("GET", "/api/v2/documents/comments", params=params or None)
         return CommentList.model_validate(data)
 
     def list_for_document(self, document_id: str) -> list[Comment]:
@@ -36,9 +52,25 @@ class SyncComments(SyncEndpoint):
 class AsyncComments(AsyncEndpoint):
     """Asynchronous comments endpoint group."""
 
-    async def list(self, **filters: Any) -> CommentList:
-        params = {k: v for k, v in filters.items() if v is not None}
-        data = await self._request("GET", "/api/v2/documents/comments", params=params)
+    async def list(
+        self,
+        *,
+        cursor: str | None = None,
+        limit: int | None = None,
+        document_id: str | None = None,
+        **extra: Any,
+    ) -> CommentList:
+        params = {
+            k: v
+            for k, v in {
+                "cursor": cursor,
+                "limit": limit,
+                "document_id": document_id,
+                **extra,
+            }.items()
+            if v is not None
+        }
+        data = await self._request("GET", "/api/v2/documents/comments", params=params or None)
         return CommentList.model_validate(data)
 
     async def list_for_document(self, document_id: str) -> list[Comment]:

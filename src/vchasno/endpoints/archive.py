@@ -16,7 +16,14 @@ from vchasno.models.archive import (
 class SyncArchive(SyncEndpoint):
     """Synchronous archive endpoint group."""
 
-    def directories(self, *, parent_id: int | None = None, search: str | None = None, cursor: str | None = None, limit: int | None = None) -> ArchiveDirectoryList:
+    def directories(
+        self,
+        *,
+        parent_id: int | None = None,
+        search: str | None = None,
+        cursor: str | None = None,
+        limit: int | None = None,
+    ) -> ArchiveDirectoryList:
         """GET /api/v2/archive/directories."""
         params: dict[str, Any] = {}
         if parent_id is not None:
@@ -35,7 +42,7 @@ class SyncArchive(SyncEndpoint):
         params: dict[str, Any] = {}
         if parent_id is not None:
             params["parent_id"] = parent_id
-        file_tuples = []
+        file_tuples: list[Any] = []
         opened: list[Any] = []
         for f in files:
             if isinstance(f, (str, Path)):
@@ -123,7 +130,14 @@ class SyncArchive(SyncEndpoint):
 class AsyncArchive(AsyncEndpoint):
     """Asynchronous archive endpoint group."""
 
-    async def directories(self, *, parent_id: int | None = None, search: str | None = None, cursor: str | None = None, limit: int | None = None) -> ArchiveDirectoryList:
+    async def directories(
+        self,
+        *,
+        parent_id: int | None = None,
+        search: str | None = None,
+        cursor: str | None = None,
+        limit: int | None = None,
+    ) -> ArchiveDirectoryList:
         params: dict[str, Any] = {}
         if parent_id is not None:
             params["parent_id"] = parent_id
@@ -136,11 +150,13 @@ class AsyncArchive(AsyncEndpoint):
         data = await self._request("GET", "/api/v2/archive/directories", params=params or None)
         return ArchiveDirectoryList.model_validate(data)
 
-    async def upload_scans(self, files: list[str | Path | BinaryIO], *, parent_id: int | None = None) -> ArchiveScanResult:
+    async def upload_scans(
+        self, files: list[str | Path | BinaryIO], *, parent_id: int | None = None
+    ) -> ArchiveScanResult:
         params: dict[str, Any] = {}
         if parent_id is not None:
             params["parent_id"] = parent_id
-        file_tuples = []
+        file_tuples: list[Any] = []
         opened: list[Any] = []
         for f in files:
             if isinstance(f, (str, Path)):
@@ -188,7 +204,9 @@ class AsyncArchive(AsyncEndpoint):
             if v is not None:
                 data_fields[k] = str(v)
         try:
-            data = await self._request("POST", "/api/v2/archive/import-signed", files=file_tuples, data=data_fields or None)
+            data = await self._request(
+                "POST", "/api/v2/archive/import-signed", files=file_tuples, data=data_fields or None
+            )
         finally:
             for f in opened:
                 f.close()
@@ -216,7 +234,9 @@ class AsyncArchive(AsyncEndpoint):
             if v is not None:
                 data_fields[k] = str(v)
         try:
-            data = await self._request("POST", "/api/v2/archive/import-signed", files=file_tuples, data=data_fields or None)
+            data = await self._request(
+                "POST", "/api/v2/archive/import-signed", files=file_tuples, data=data_fields or None
+            )
         finally:
             for f in opened:
                 f.close()

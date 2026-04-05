@@ -18,7 +18,9 @@ class SyncFields(SyncEndpoint):
 
     def create(self, *, name: str, field_type: str, is_required: bool = False) -> CustomField:
         """POST /api/v2/fields."""
-        data = self._request("POST", "/api/v2/fields", json={"name": name, "field_type": field_type, "is_required": is_required})
+        data = self._request(
+            "POST", "/api/v2/fields", json={"name": name, "field_type": field_type, "is_required": is_required}
+        )
         return CustomField.model_validate(data)
 
     def list_for_document(self, document_id: str) -> list[DocumentField]:
@@ -28,7 +30,11 @@ class SyncFields(SyncEndpoint):
 
     def add_to_document(self, document_id: str, *, field_id: str, value: str, is_required: bool = False) -> Any:
         """POST /api/v2/documents/{id}/fields."""
-        return self._request("POST", f"/api/v2/documents/{document_id}/fields", json={"field_id": field_id, "value": value, "is_required": is_required})
+        return self._request(
+            "POST",
+            f"/api/v2/documents/{document_id}/fields",
+            json={"field_id": field_id, "value": value, "is_required": is_required},
+        )
 
 
 class AsyncFields(AsyncEndpoint):
@@ -39,7 +45,9 @@ class AsyncFields(AsyncEndpoint):
         return [CustomField.model_validate(f) for f in data]
 
     async def create(self, *, name: str, field_type: str, is_required: bool = False) -> CustomField:
-        data = await self._request("POST", "/api/v2/fields", json={"name": name, "field_type": field_type, "is_required": is_required})
+        data = await self._request(
+            "POST", "/api/v2/fields", json={"name": name, "field_type": field_type, "is_required": is_required}
+        )
         return CustomField.model_validate(data)
 
     async def list_for_document(self, document_id: str) -> list[DocumentField]:
@@ -47,4 +55,8 @@ class AsyncFields(AsyncEndpoint):
         return [DocumentField.model_validate(f) for f in data]
 
     async def add_to_document(self, document_id: str, *, field_id: str, value: str, is_required: bool = False) -> Any:
-        return await self._request("POST", f"/api/v2/documents/{document_id}/fields", json={"field_id": field_id, "value": value, "is_required": is_required})
+        return await self._request(
+            "POST",
+            f"/api/v2/documents/{document_id}/fields",
+            json={"field_id": field_id, "value": value, "is_required": is_required},
+        )

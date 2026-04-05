@@ -21,7 +21,7 @@ class CustomField(BaseModel):
     id: str
     name: str
     type: str
-    order: str | None = None
+    order: int | None = None
     company_id: str | None = None
     is_required: bool | None = None
     created_by: str | None = None
@@ -39,16 +39,46 @@ class DocumentField(BaseModel):
     date_created: str | None = None
 
 
+class ReviewSettings(BaseModel):
+    """Review configuration within a template."""
+
+    model_config = {"extra": "allow"}
+
+
+class SignersSettings(BaseModel):
+    """Signers configuration within a template."""
+
+    model_config = {"extra": "allow"}
+
+
+class ViewersSettings(BaseModel):
+    """Viewers configuration within a template."""
+
+    model_config = {"extra": "allow"}
+
+
+class FieldsSettings(BaseModel):
+    """Fields configuration within a template."""
+
+    model_config = {"extra": "allow"}
+
+
+class TagsSettings(BaseModel):
+    """Tags configuration within a template."""
+
+    model_config = {"extra": "allow"}
+
+
 class Template(BaseModel):
     """Scenario / template."""
 
     id: str
     name: str
-    review_settings: dict | None = None
-    signers_settings: dict | None = None
-    viewers_settings: dict | None = None
-    fields_settings: dict | None = None
-    tags_settings: dict | None = None
+    review_settings: ReviewSettings | None = None
+    signers_settings: SignersSettings | None = None
+    viewers_settings: ViewersSettings | None = None
+    fields_settings: FieldsSettings | None = None
+    tags_settings: TagsSettings | None = None
     created_by: str | None = None
     date_created: str | None = None
     date_updated: str | None = None

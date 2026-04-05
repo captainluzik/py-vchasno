@@ -9,31 +9,46 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from vchasno.endpoints.categories import AsyncCategories, SyncCategories
-from vchasno.endpoints.signatures import AsyncSignatures, SyncSignatures
-from vchasno.endpoints.groups import AsyncGroups, SyncGroups
-from vchasno.endpoints.reviews import AsyncReviews, SyncReviews
 from vchasno.endpoints.billing import AsyncBilling, SyncBilling
+from vchasno.endpoints.categories import AsyncCategories, SyncCategories
 from vchasno.endpoints.children import AsyncChildren, SyncChildren
-from vchasno.endpoints.templates import AsyncTemplates, SyncTemplates
 from vchasno.endpoints.comments import AsyncComments, SyncComments
-from vchasno.endpoints.fields import AsyncFields, SyncFields
-from vchasno.endpoints.reports import AsyncReports, SyncReports
-from vchasno.endpoints.roles import AsyncRoles, SyncRoles
 from vchasno.endpoints.delete_requests import AsyncDeleteRequests, SyncDeleteRequests
+from vchasno.endpoints.fields import AsyncFields, SyncFields
+from vchasno.endpoints.groups import AsyncGroups, SyncGroups
+from vchasno.endpoints.reports import AsyncReports, SyncReports
+from vchasno.endpoints.reviews import AsyncReviews, SyncReviews
+from vchasno.endpoints.roles import AsyncRoles, SyncRoles
+from vchasno.endpoints.signatures import AsyncSignatures, SyncSignatures
 from vchasno.endpoints.tags import AsyncTags, SyncTags
+from vchasno.endpoints.templates import AsyncTemplates, SyncTemplates
 from vchasno.endpoints.versions import AsyncVersions, SyncVersions
-
-from vchasno.models.common import DocumentCategoryInfo, CustomField, DocumentField, Template, ReportRequest, ReportStatus, UpdatedIds
-from vchasno.models.documents import SignatureDetail, FlowEntry, Review, ReviewRequest, ReviewStatus, Comment, CommentList
+from vchasno.models.common import (
+    CustomField,
+    DocumentCategoryInfo,
+    DocumentField,
+    ReportRequest,
+    ReportStatus,
+    Template,
+    UpdatedIds,
+)
+from vchasno.models.documents import (
+    Comment,
+    CommentList,
+    FlowEntry,
+    Review,
+    ReviewRequest,
+    ReviewStatus,
+    SignatureDetail,
+)
 from vchasno.models.groups import Group, GroupMember
-from vchasno.models.tags import Tag, TagList, TagRoleList
 from vchasno.models.roles import RoleList
-
+from vchasno.models.tags import Tag, TagList, TagRoleList
 
 # ============================================================================
 # Categories
 # ============================================================================
+
 
 class TestSyncCategories:
     def _make(self):
@@ -102,6 +117,7 @@ class TestAsyncCategories:
 # ============================================================================
 # Signatures
 # ============================================================================
+
 
 class TestSyncSignatures:
     def _make(self):
@@ -178,6 +194,7 @@ class TestAsyncSignatures:
 # ============================================================================
 # Groups
 # ============================================================================
+
 
 class TestSyncGroups:
     def _make(self):
@@ -292,6 +309,7 @@ class TestAsyncGroups:
 # ============================================================================
 # Reviews
 # ============================================================================
+
 
 class TestSyncReviews:
     def _make(self):
@@ -434,12 +452,15 @@ class TestAsyncReviews:
 # Billing
 # ============================================================================
 
+
 class TestSyncBilling:
     def test_activate_trial_default(self):
         ep = SyncBilling(MagicMock())
         ep._request = MagicMock(return_value={})
         ep.activate_trial()
-        ep._request.assert_called_with("POST", "/api/v2/billing/companies/rates/trials", json={"rate": "integration_trial"})
+        ep._request.assert_called_with(
+            "POST", "/api/v2/billing/companies/rates/trials", json={"rate": "integration_trial"}
+        )
 
     def test_activate_trial_custom(self):
         ep = SyncBilling(MagicMock())
@@ -454,12 +475,15 @@ class TestAsyncBilling:
         ep = AsyncBilling(MagicMock())
         ep._request = AsyncMock(return_value={})
         await ep.activate_trial()
-        ep._request.assert_called_with("POST", "/api/v2/billing/companies/rates/trials", json={"rate": "integration_trial"})
+        ep._request.assert_called_with(
+            "POST", "/api/v2/billing/companies/rates/trials", json={"rate": "integration_trial"}
+        )
 
 
 # ============================================================================
 # Children
 # ============================================================================
+
 
 class TestSyncChildren:
     def test_add(self):
@@ -493,6 +517,7 @@ class TestAsyncChildren:
 # Templates
 # ============================================================================
 
+
 class TestSyncTemplates:
     def test_list(self):
         ep = SyncTemplates(MagicMock())
@@ -525,6 +550,7 @@ class TestAsyncTemplates:
 # ============================================================================
 # Comments
 # ============================================================================
+
 
 class TestSyncComments:
     def _make(self):
@@ -597,6 +623,7 @@ class TestAsyncComments:
 # Fields
 # ============================================================================
 
+
 class TestSyncFields:
     def _make(self):
         ep = SyncFields(MagicMock())
@@ -663,6 +690,7 @@ class TestAsyncFields:
 # Reports
 # ============================================================================
 
+
 class TestSyncReports:
     def _make(self):
         ep = SyncReports(MagicMock())
@@ -727,6 +755,7 @@ class TestAsyncReports:
 # ============================================================================
 # Roles
 # ============================================================================
+
 
 class TestSyncRoles:
     def _make(self):
@@ -860,6 +889,7 @@ class TestAsyncRoles:
 # Delete Requests
 # ============================================================================
 
+
 class TestSyncDeleteRequests:
     def _make(self):
         ep = SyncDeleteRequests(MagicMock())
@@ -974,6 +1004,7 @@ class TestAsyncDeleteRequests:
 # ============================================================================
 # Tags
 # ============================================================================
+
 
 class TestSyncTags:
     def _make(self):
@@ -1101,6 +1132,7 @@ class TestAsyncTags:
 # ============================================================================
 # Versions
 # ============================================================================
+
 
 class TestSyncVersions:
     def _make(self):

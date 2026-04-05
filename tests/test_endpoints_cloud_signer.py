@@ -82,7 +82,9 @@ class TestSyncCloudSigner:
     def test_create_sign_session_with_urls(self):
         ep, req = self._make()
         req.return_value = {"id": "ss1"}
-        ep.create_sign_session(document_id="d1", edrpou="e", email="e@m.com", type="sign_session", on_cancel_url="cu", on_finish_url="fu")
+        ep.create_sign_session(
+            document_id="d1", edrpou="e", email="e@m.com", type="sign_session", on_cancel_url="cu", on_finish_url="fu"
+        )
         call_json = req.call_args.kwargs["json"]
         assert call_json["on_cancel_url"] == "cu"
         assert call_json["on_finish_url"] == "fu"
@@ -134,7 +136,9 @@ class TestAsyncCloudSigner:
     async def test_sign_document_with_tokens(self):
         ep, req = self._make()
         req.return_value = {}
-        await ep.sign_document(client_id="c1", password="p", document_id="d1", auth_session_token="ast", access_token="at")
+        await ep.sign_document(
+            client_id="c1", password="p", document_id="d1", auth_session_token="ast", access_token="at"
+        )
         call_json = req.call_args.kwargs["json"]
         assert call_json["access_token"] == "at"
 
@@ -149,6 +153,8 @@ class TestAsyncCloudSigner:
     async def test_create_sign_session_with_urls(self):
         ep, req = self._make()
         req.return_value = {"id": "ss1"}
-        await ep.create_sign_session(document_id="d1", edrpou="e", email="e@m.com", type="sign", on_cancel_url="cu", on_finish_url="fu")
+        await ep.create_sign_session(
+            document_id="d1", edrpou="e", email="e@m.com", type="sign", on_cancel_url="cu", on_finish_url="fu"
+        )
         call_json = req.call_args.kwargs["json"]
         assert call_json["on_cancel_url"] == "cu"

@@ -4,30 +4,24 @@ from __future__ import annotations
 
 import io
 import tempfile
-from pathlib import Path
-from unittest.mock import MagicMock, AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from vchasno.endpoints.documents import AsyncDocuments, DocumentsMixin, SyncDocuments
-from vchasno.models.documents import Document, DocumentList, DocumentStatusList, DownloadDocumentList, IncomingDocumentList
+from vchasno.endpoints.documents import AsyncDocuments, SyncDocuments
 from vchasno.models.common import UpdatedIds
-
+from vchasno.models.documents import (
+    Document,
+    DocumentList,
+    DocumentStatusList,
+    DownloadDocumentList,
+    IncomingDocumentList,
+)
 
 DOC_DATA = {"id": "d1", "status": 7000}
 DOC_LIST_DATA = {"documents": [DOC_DATA], "next_cursor": None}
 INCOMING_DOC_DATA = {"id": "i1", "status": 7000}
 INCOMING_DOC_LIST_DATA = {"documents": [INCOMING_DOC_DATA], "next_cursor": None}
-
-
-class TestDocumentsMixin:
-    def test_list_params_filters_none(self):
-        result = DocumentsMixin._list_params(a=1, b=None, c="x")
-        assert result == {"a": 1, "c": "x"}
-
-    def test_list_params_empty(self):
-        result = DocumentsMixin._list_params()
-        assert result == {}
 
 
 class TestSyncDocuments:
@@ -43,6 +37,12 @@ class TestSyncDocuments:
         result = ep.list(status=7000)
         assert isinstance(result, DocumentList)
         req.assert_called_once_with("GET", "/api/v2/documents", params={"status": 7000})
+
+    def test_list_no_params(self):
+        ep, req = self._make()
+        req.return_value = DOC_LIST_DATA
+        ep.list()
+        req.assert_called_once_with("GET", "/api/v2/documents", params=None)
 
     def test_get_wrapped(self):
         ep, req = self._make()
@@ -230,7 +230,9 @@ class TestSyncDocuments:
         ep, req = self._make()
         req.return_value = {"ok": True}
         ep.archive(["d1"], directory_id="dir1")
-        req.assert_called_with("POST", "/api/v2/documents/archive", json={"document_ids": ["d1"], "directory_id": "dir1"})
+        req.assert_called_with(
+            "POST", "/api/v2/documents/archive", json={"document_ids": ["d1"], "directory_id": "dir1"}
+        )
 
     def test_archive_without_directory(self):
         ep, req = self._make()
@@ -254,7 +256,7 @@ class TestSyncDocuments:
     def test_structured_data_download(self):
         ep, req = self._make()
         req.return_value = {"details": {}}
-        result = ep.structured_data_download("d1", format="json")
+        ep.structured_data_download("d1", output_format="json")
         req.assert_called_with("GET", "/api/v2/documents/d1/structured-data/download", params={"format": "json"})
 
 
@@ -271,6 +273,13 @@ class TestAsyncDocuments:
         req.return_value = DOC_LIST_DATA
         result = await ep.list(status=7000)
         assert isinstance(result, DocumentList)
+
+    @pytest.mark.asyncio
+    async def test_list_no_params(self):
+        ep, req = self._make()
+        req.return_value = DOC_LIST_DATA
+        await ep.list()
+        req.assert_called_once_with("GET", "/api/v2/documents", params=None)
 
     @pytest.mark.asyncio
     async def test_get_wrapped(self):

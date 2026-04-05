@@ -1,9 +1,10 @@
-"""HTTP transport layer with retry logic for 429 responses."""
+"""HTTP transport layer with retry logic for 429 and 5xx responses."""
 
 from __future__ import annotations
 
-import time
 import asyncio
+import logging
+import time
 from typing import Any
 
 import httpx
@@ -16,9 +17,12 @@ from vchasno.exceptions import (
     VchasnoAPIError,
 )
 
+logger = logging.getLogger("vchasno")
+
 _DEFAULT_TIMEOUT = 30.0
 _MAX_RETRIES = 3
 _RETRY_BASE_DELAY = 1.0  # seconds
+_RETRYABLE_STATUS_CODES = frozenset({429, 502, 503, 504})
 
 
 def _raise_for_status(response: httpx.Response) -> None:
@@ -31,6 +35,7 @@ def _raise_for_status(response: httpx.Response) -> None:
 
     error_classes: dict[int, type[VchasnoAPIError]] = {
         400: BadRequestError,
+        401: AuthenticationError,
         403: AuthenticationError,
         404: NotFoundError,
         429: RateLimitError,
@@ -41,6 +46,17 @@ def _raise_for_status(response: httpx.Response) -> None:
         status_code=status,
         response_body=body,
     )
+
+
+def _retry_delay(response: httpx.Response, attempt: int) -> float:
+    """Compute delay: honour ``Retry-After`` header when present, otherwise exponential back-off."""
+    retry_after = response.headers.get("retry-after")
+    if retry_after is not None:
+        try:
+            return float(retry_after)
+        except (ValueError, TypeError):
+            pass
+    return _RETRY_BASE_DELAY * (2**attempt)
 
 
 class SyncTransport:
@@ -68,7 +84,7 @@ class SyncTransport:
         method: str,
         path: str,
         *,
-        params: dict[str, Any] | None = None,
+        params: dict[str, Any] | list[tuple[str, Any]] | None = None,
         json: Any | None = None,
         data: dict[str, Any] | None = None,
         files: Any | None = None,
@@ -76,6 +92,7 @@ class SyncTransport:
     ) -> httpx.Response:
         attempt = 0
         while True:
+            logger.debug("%s %s (attempt %d)", method, path, attempt + 1)
             response = self._client.request(
                 method,
                 path,
@@ -85,8 +102,17 @@ class SyncTransport:
                 files=files,
                 headers=headers,
             )
-            if response.status_code == 429 and attempt < self._max_retries:
-                delay = _RETRY_BASE_DELAY * (2**attempt)
+            if response.status_code in _RETRYABLE_STATUS_CODES and attempt < self._max_retries:
+                delay = _retry_delay(response, attempt)
+                logger.warning(
+                    "%s %s returned %d, retrying in %.1fs (attempt %d/%d)",
+                    method,
+                    path,
+                    response.status_code,
+                    delay,
+                    attempt + 1,
+                    self._max_retries,
+                )
                 time.sleep(delay)
                 attempt += 1
                 continue
@@ -122,7 +148,7 @@ class AsyncTransport:
         method: str,
         path: str,
         *,
-        params: dict[str, Any] | None = None,
+        params: dict[str, Any] | list[tuple[str, Any]] | None = None,
         json: Any | None = None,
         data: dict[str, Any] | None = None,
         files: Any | None = None,
@@ -130,6 +156,7 @@ class AsyncTransport:
     ) -> httpx.Response:
         attempt = 0
         while True:
+            logger.debug("%s %s (attempt %d)", method, path, attempt + 1)
             response = await self._client.request(
                 method,
                 path,
@@ -139,8 +166,17 @@ class AsyncTransport:
                 files=files,
                 headers=headers,
             )
-            if response.status_code == 429 and attempt < self._max_retries:
-                delay = _RETRY_BASE_DELAY * (2**attempt)
+            if response.status_code in _RETRYABLE_STATUS_CODES and attempt < self._max_retries:
+                delay = _retry_delay(response, attempt)
+                logger.warning(
+                    "%s %s returned %d, retrying in %.1fs (attempt %d/%d)",
+                    method,
+                    path,
+                    response.status_code,
+                    delay,
+                    attempt + 1,
+                    self._max_retries,
+                )
                 await asyncio.sleep(delay)
                 attempt += 1
                 continue

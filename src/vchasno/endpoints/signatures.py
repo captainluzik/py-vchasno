@@ -19,7 +19,7 @@ class SyncSignatures(SyncEndpoint):
     def add(self, document_id: str, *, signature: str, stamp: str | None = None) -> Any:
         """POST /api/v2/documents/{id}/signatures."""
         body: dict[str, Any] = {"signature": signature}
-        if stamp:
+        if stamp is not None:
             body["stamp"] = stamp
         return self._request("POST", f"/api/v2/documents/{document_id}/signatures", json=body)
 
@@ -38,7 +38,7 @@ class AsyncSignatures(AsyncEndpoint):
 
     async def add(self, document_id: str, *, signature: str, stamp: str | None = None) -> Any:
         body: dict[str, Any] = {"signature": signature}
-        if stamp:
+        if stamp is not None:
             body["stamp"] = stamp
         return await self._request("POST", f"/api/v2/documents/{document_id}/signatures", json=body)
 
