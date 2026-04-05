@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from typing import Any
 
 from vchasno._async.endpoints._base import AsyncEndpoint
@@ -21,8 +22,8 @@ class AsyncRoles(AsyncEndpoint):
     async def delete(self, role_id: str) -> None:
         await self._request("DELETE", f"/api/v2/roles/{role_id}")
 
-    async def invite_coworkers(self, *, emails: list[str]) -> None:
-        await self._request("POST", "/api/v2/invite/coworkers", json={"emails": emails})
+    async def invite_coworkers(self, *, emails: Sequence[str]) -> None:
+        await self._request("POST", "/api/v2/invite/coworkers", json={"emails": list(emails)})
 
     async def create_coworker(
         self,
@@ -44,11 +45,11 @@ class AsyncRoles(AsyncEndpoint):
             body["phone"] = phone
         await self._request("POST", "/api/v2/coworker", json=body)
 
-    async def create_tokens(self, *, emails: list[str], expire_days: str | None = None) -> None:
-        body: dict[str, Any] = {"emails": emails}
+    async def create_tokens(self, *, emails: Sequence[str], expire_days: str | None = None) -> None:
+        body: dict[str, Any] = {"emails": list(emails)}
         if expire_days is not None:
             body["expire_days"] = expire_days
         await self._request("POST", "/api/v2/tokens", json=body)
 
-    async def delete_tokens(self, *, emails: list[str]) -> None:
-        await self._request("DELETE", "/api/v2/tokens", json={"emails": emails})
+    async def delete_tokens(self, *, emails: Sequence[str]) -> None:
+        await self._request("DELETE", "/api/v2/tokens", json={"emails": list(emails)})

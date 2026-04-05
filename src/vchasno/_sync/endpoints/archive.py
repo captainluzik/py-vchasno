@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Any, BinaryIO
+from typing import IO, Any
 
 from vchasno._sync.endpoints._base import SyncEndpoint
 from vchasno.models.archive import (
@@ -37,7 +38,7 @@ class SyncArchive(SyncEndpoint):
         return ArchiveDirectoryList.model_validate(data)
 
     def upload_scans(
-        self, files: list[str | Path | BinaryIO], *, parent_id: int | None = None
+        self, files: Sequence[str | Path | IO[bytes]], *, parent_id: int | None = None
     ) -> ArchiveScanResult:
         params: dict[str, Any] = {}
         if parent_id is not None:
@@ -61,8 +62,8 @@ class SyncArchive(SyncEndpoint):
 
     def import_signed_external(
         self,
-        file: str | Path | BinaryIO,
-        signatures: list[str | Path | BinaryIO],
+        file: str | Path | IO[bytes],
+        signatures: Sequence[str | Path | IO[bytes]],
         *,
         filename: str | None = None,
         **metadata: Any,
@@ -100,7 +101,7 @@ class SyncArchive(SyncEndpoint):
 
     def import_signed_internal(
         self,
-        signed_file: str | Path | BinaryIO,
+        signed_file: str | Path | IO[bytes],
         *,
         filename: str | None = None,
         **metadata: Any,

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import BinaryIO
+from typing import IO
 
 from vchasno._sync.endpoints._base import SyncEndpoint
 
@@ -11,8 +11,8 @@ from vchasno._sync.endpoints._base import SyncEndpoint
 class SyncVersions(SyncEndpoint):
     """Asynchronous versions endpoint group."""
 
-    def upload(self, document_id: str, file: str | Path | BinaryIO, *, filename: str | None = None) -> None:
-        opened: BinaryIO | None = None
+    def upload(self, document_id: str, file: str | Path | IO[bytes], *, filename: str | None = None) -> None:
+        opened: IO[bytes] | None = None
         if isinstance(file, (str, Path)):
             path = Path(file)
             filename = filename or path.name

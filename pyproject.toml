@@ -75,6 +75,9 @@ python_version = "3.11"
 strict = true
 warn_return_any = false
 ignore_missing_imports = true
+# Ignore: method `list()` shadows builtin `list` type in return annotations
+# Ignore: open() returns BufferedReader, annotated as IO[bytes] for flexibility
+disable_error_code = ["valid-type", "assignment"]
 
 [tool.unasyncd]
 ruff_fix = true

@@ -2,20 +2,20 @@
 
 from __future__ import annotations
 
-from collections.abc import Generator
+from collections.abc import Generator, Sequence
 from contextlib import contextmanager
 from pathlib import Path
-from typing import BinaryIO
+from typing import IO
 
 
 @contextmanager
 def open_file(
-    file: str | Path | BinaryIO,
+    file: str | Path | IO[bytes],
     *,
     default_name: str = "document",
     filename: str | None = None,
-) -> Generator[tuple[str, BinaryIO], None, None]:
-    """Open a file path or pass through a BinaryIO, ensuring cleanup on exit.
+) -> Generator[tuple[str, IO[bytes]], None, None]:
+    """Open a file path or pass through a file object, ensuring cleanup on exit.
 
     Yields:
         (resolved_filename, file_object) tuple ready for use in multipart uploads.
@@ -23,7 +23,7 @@ def open_file(
     if isinstance(file, (str, Path)):
         path = Path(file)
         resolved_name = filename or path.name
-        fp: BinaryIO = open(path, "rb")
+        fp: IO[bytes] = open(path, "rb")
         try:
             yield resolved_name, fp
         finally:
@@ -34,17 +34,17 @@ def open_file(
 
 @contextmanager
 def open_files(
-    files: list[str | Path | BinaryIO],
+    files: Sequence[str | Path | IO[bytes]],
     *,
     field_name: str = "files",
     default_name: str = "file",
-) -> Generator[list[tuple[str, tuple[str, BinaryIO]]], None, None]:
+) -> Generator[list[tuple[str, tuple[str, IO[bytes]]]], None, None]:
     """Open multiple files, yielding a list of (field_name, (filename, fp)) tuples.
 
     Ensures all opened file handles are closed on exit, even if an error occurs.
     """
-    opened: list[BinaryIO] = []
-    file_tuples: list[tuple[str, tuple[str, BinaryIO]]] = []
+    opened: list[IO[bytes]] = []
+    file_tuples: list[tuple[str, tuple[str, IO[bytes]]]] = []
     try:
         for f in files:
             if isinstance(f, (str, Path)):

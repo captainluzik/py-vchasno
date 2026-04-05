@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Any, BinaryIO, cast
+from typing import IO, Any, cast
 
 from vchasno._sync.endpoints._base import SyncEndpoint
 from vchasno._utils import UNSET as _UNSET
@@ -67,7 +68,7 @@ class SyncDocuments(SyncEndpoint):
 
     def upload(
         self,
-        file: str | Path | BinaryIO,
+        file: str | Path | IO[bytes],
         *,
         filename: str | None = None,
         category: int | None = None,
@@ -90,7 +91,7 @@ class SyncDocuments(SyncEndpoint):
             **extra: Additional query parameters forwarded to the API.
         """
         resolved_edrpou = recipient_edrpou or edrpou
-        opened: BinaryIO | None = None
+        opened: IO[bytes] | None = None
         if isinstance(file, (str, Path)):
             path = Path(file)
             filename = filename or path.name
@@ -152,28 +153,28 @@ class SyncDocuments(SyncEndpoint):
         document_id: str,
         *,
         strategy: str,
-        groups_ids: list[str] | None = None,
-        roles_ids: list[str] | None = None,
+        groups_ids: Sequence[str] | None = None,
+        roles_ids: Sequence[str] | None = None,
     ) -> None:
         body: dict[str, Any] = {"strategy": strategy}
         if groups_ids is not None:
-            body["groups_ids"] = groups_ids
+            body["groups_ids"] = list(groups_ids)
         if roles_ids is not None:
-            body["roles_ids"] = roles_ids
+            body["roles_ids"] = list(roles_ids)
         self._request("PATCH", f"/api/v2/documents/{document_id}/viewers-settings", json=body)
 
     # -- flow / signers -------------------------------------------------
 
-    def set_flow(self, document_id: str, flow: list[dict[str, Any]]) -> None:
-        self._request("POST", f"/api/v2/documents/{document_id}/flow", json=flow)
+    def set_flow(self, document_id: str, flow: Sequence[dict[str, Any]]) -> None:
+        self._request("POST", f"/api/v2/documents/{document_id}/flow", json=list(flow))
 
     def set_signers(
-        self, document_id: str, *, signer_entities: list[dict[str, str]], is_parallel: bool = True
+        self, document_id: str, *, signer_entities: Sequence[dict[str, str]], is_parallel: bool = True
     ) -> None:
         self._request(
             "POST",
             f"/api/v2/documents/{document_id}/signers",
-            json={"signer_entities": signer_entities, "is_parallel": is_parallel},
+            json={"signer_entities": list(signer_entities), "is_parallel": is_parallel},
         )
 
     # -- incoming -------------------------------------------------------
@@ -227,7 +228,7 @@ class SyncDocuments(SyncEndpoint):
     def download_asic(self, document_id: str) -> bytes:
         return cast(bytes, self._request("GET", f"/api/v2/documents/{document_id}/asic"))
 
-    def download_documents(self, ids: list[str]) -> DownloadDocumentList:
+    def download_documents(self, ids: Sequence[str]) -> DownloadDocumentList:
         params = [("ids", i) for i in ids]
         data = self._request("GET", "/api/v2/download-documents", params=params)
         return DownloadDocumentList.model_validate(data)
@@ -245,10 +246,10 @@ class SyncDocuments(SyncEndpoint):
 
     # -- status / actions -----------------------------------------------
 
-    def statuses(self, document_ids: list[str]) -> DocumentStatusList:
+    def statuses(self, document_ids: Sequence[str]) -> DocumentStatusList:
         if len(document_ids) > 500:
             raise ValueError("Maximum 500 document IDs per request")
-        data = self._request("POST", "/api/v2/documents/statuses", json={"document_ids": document_ids})
+        data = self._request("POST", "/api/v2/documents/statuses", json={"document_ids": list(document_ids)})
         return DocumentStatusList.model_validate(data)
 
     def reject(self, document_id: str, *, text: str) -> None:
@@ -260,17 +261,19 @@ class SyncDocuments(SyncEndpoint):
     def delete(self, document_id: str) -> None:
         self._request("DELETE", f"/api/v2/documents/{document_id}")
 
-    def archive(self, document_ids: list[str], *, directory_id: str | None = None) -> None:
-        body: dict[str, Any] = {"document_ids": document_ids}
+    def archive(self, document_ids: Sequence[str], *, directory_id: str | None = None) -> None:
+        body: dict[str, Any] = {"document_ids": list(document_ids)}
         if directory_id is not None:
             body["directory_id"] = directory_id
         self._request("POST", "/api/v2/documents/archive", json=body)
 
-    def unarchive(self, document_ids: list[str]) -> None:
-        self._request("DELETE", "/api/v2/documents/archive", json={"document_ids": document_ids})
+    def unarchive(self, document_ids: Sequence[str]) -> None:
+        self._request("DELETE", "/api/v2/documents/archive", json={"document_ids": list(document_ids)})
 
-    def mark_as_processed(self, document_ids: list[str]) -> UpdatedIds:
-        data = self._request("POST", "/api/v2/documents/mark-as-processed", json={"document_ids": document_ids})
+    def mark_as_processed(self, document_ids: Sequence[str]) -> UpdatedIds:
+        data = self._request(
+            "POST", "/api/v2/documents/mark-as-processed", json={"document_ids": list(document_ids)}
+        )
         return UpdatedIds.model_validate(data)
 
     def structured_data_download(

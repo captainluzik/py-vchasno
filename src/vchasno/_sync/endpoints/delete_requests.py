@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from typing import Any
 
 from vchasno._sync.endpoints._base import SyncEndpoint
@@ -43,14 +44,14 @@ class SyncDeleteRequests(SyncEndpoint):
         items = data if isinstance(data, list) else [data]
         return [DeleteRequestRef.model_validate(d) for d in items]
 
-    def lock_delete(self, document_ids: list[str]) -> UpdatedIds:
+    def lock_delete(self, document_ids: Sequence[str]) -> UpdatedIds:
         data = self._request(
-            "POST", "/api/v2/documents/delete-requests/lock-delete", json={"document_ids": document_ids}
+            "POST", "/api/v2/documents/delete-requests/lock-delete", json={"document_ids": list(document_ids)}
         )
         return UpdatedIds.model_validate(data)
 
-    def unlock_delete(self, document_ids: list[str]) -> UpdatedIds:
+    def unlock_delete(self, document_ids: Sequence[str]) -> UpdatedIds:
         data = self._request(
-            "DELETE", "/api/v2/documents/delete-requests/lock-delete", json={"document_ids": document_ids}
+            "DELETE", "/api/v2/documents/delete-requests/lock-delete", json={"document_ids": list(document_ids)}
         )
         return UpdatedIds.model_validate(data)

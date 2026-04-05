@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from typing import Any
 
 from vchasno._async.endpoints._base import AsyncEndpoint
@@ -43,14 +44,14 @@ class AsyncDeleteRequests(AsyncEndpoint):
         items = data if isinstance(data, list) else [data]
         return [DeleteRequestRef.model_validate(d) for d in items]
 
-    async def lock_delete(self, document_ids: list[str]) -> UpdatedIds:
+    async def lock_delete(self, document_ids: Sequence[str]) -> UpdatedIds:
         data = await self._request(
-            "POST", "/api/v2/documents/delete-requests/lock-delete", json={"document_ids": document_ids}
+            "POST", "/api/v2/documents/delete-requests/lock-delete", json={"document_ids": list(document_ids)}
         )
         return UpdatedIds.model_validate(data)
 
-    async def unlock_delete(self, document_ids: list[str]) -> UpdatedIds:
+    async def unlock_delete(self, document_ids: Sequence[str]) -> UpdatedIds:
         data = await self._request(
-            "DELETE", "/api/v2/documents/delete-requests/lock-delete", json={"document_ids": document_ids}
+            "DELETE", "/api/v2/documents/delete-requests/lock-delete", json={"document_ids": list(document_ids)}
         )
         return UpdatedIds.model_validate(data)

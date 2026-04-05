@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from typing import Any, cast
 
 from vchasno._async.endpoints._base import AsyncEndpoint
@@ -34,9 +35,11 @@ class AsyncGroups(AsyncEndpoint):
         data = await self._request("GET", f"/api/v2/groups/{group_id}/members")
         return [GroupMember.model_validate(m) for m in cast(list[Any], data)]
 
-    async def add_members(self, group_id: str, *, role_ids: list[str]) -> list[GroupMember]:
-        data = await self._request("POST", f"/api/v2/groups/{group_id}/members", json={"role_ids": role_ids})
+    async def add_members(self, group_id: str, *, role_ids: Sequence[str]) -> list[GroupMember]:
+        data = await self._request("POST", f"/api/v2/groups/{group_id}/members", json={"role_ids": list(role_ids)})
         return [GroupMember.model_validate(m) for m in cast(list[Any], data)]
 
-    async def remove_members(self, group_id: str, *, group_members: list[str]) -> None:
-        await self._request("POST", f"/api/v2/groups/{group_id}/members/remove", json={"group_members": group_members})
+    async def remove_members(self, group_id: str, *, group_members: Sequence[str]) -> None:
+        await self._request(
+            "POST", f"/api/v2/groups/{group_id}/members/remove", json={"group_members": list(group_members)}
+        )

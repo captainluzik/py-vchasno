@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from typing import Any
 
 from vchasno._sync.endpoints._base import SyncEndpoint
@@ -21,8 +22,8 @@ class SyncRoles(SyncEndpoint):
     def delete(self, role_id: str) -> None:
         self._request("DELETE", f"/api/v2/roles/{role_id}")
 
-    def invite_coworkers(self, *, emails: list[str]) -> None:
-        self._request("POST", "/api/v2/invite/coworkers", json={"emails": emails})
+    def invite_coworkers(self, *, emails: Sequence[str]) -> None:
+        self._request("POST", "/api/v2/invite/coworkers", json={"emails": list(emails)})
 
     def create_coworker(
         self,
@@ -44,11 +45,11 @@ class SyncRoles(SyncEndpoint):
             body["phone"] = phone
         self._request("POST", "/api/v2/coworker", json=body)
 
-    def create_tokens(self, *, emails: list[str], expire_days: str | None = None) -> None:
-        body: dict[str, Any] = {"emails": emails}
+    def create_tokens(self, *, emails: Sequence[str], expire_days: str | None = None) -> None:
+        body: dict[str, Any] = {"emails": list(emails)}
         if expire_days is not None:
             body["expire_days"] = expire_days
         self._request("POST", "/api/v2/tokens", json=body)
 
-    def delete_tokens(self, *, emails: list[str]) -> None:
-        self._request("DELETE", "/api/v2/tokens", json={"emails": emails})
+    def delete_tokens(self, *, emails: Sequence[str]) -> None:
+        self._request("DELETE", "/api/v2/tokens", json={"emails": list(emails)})

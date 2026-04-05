@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from typing import Any, cast
 
 from vchasno._sync.endpoints._base import SyncEndpoint
@@ -24,32 +25,38 @@ class SyncTags(SyncEndpoint):
         data = self._request("GET", f"/api/v2/tags/{tag_id}/roles")
         return TagRoleList.model_validate(data)
 
-    def create_for_documents(self, *, documents_ids: list[str], names: list[str]) -> list[Tag]:
+    def create_for_documents(self, *, documents_ids: Sequence[str], names: Sequence[str]) -> list[Tag]:
         data = self._request(
-            "POST", "/api/v2/tags/documents", json={"documents_ids": documents_ids, "names": names}
+            "POST", "/api/v2/tags/documents", json={"documents_ids": list(documents_ids), "names": list(names)}
         )
         return [Tag.model_validate(t) for t in cast(list[Any], data)]
 
-    def connect_documents(self, *, documents_ids: list[str], tags_ids: list[str]) -> None:
+    def connect_documents(self, *, documents_ids: Sequence[str], tags_ids: Sequence[str]) -> None:
         self._request(
-            "POST", "/api/v2/tags/documents/connections", json={"documents_ids": documents_ids, "tags_ids": tags_ids}
+            "POST",
+            "/api/v2/tags/documents/connections",
+            json={"documents_ids": list(documents_ids), "tags_ids": list(tags_ids)},
         )
 
-    def disconnect_documents(self, *, documents_ids: list[str], tags_ids: list[str]) -> None:
+    def disconnect_documents(self, *, documents_ids: Sequence[str], tags_ids: Sequence[str]) -> None:
         self._request(
-            "DELETE", "/api/v2/tags/documents/connections", json={"documents_ids": documents_ids, "tags_ids": tags_ids}
+            "DELETE",
+            "/api/v2/tags/documents/connections",
+            json={"documents_ids": list(documents_ids), "tags_ids": list(tags_ids)},
         )
 
-    def create_for_roles(self, *, roles_ids: list[str], names: list[str]) -> list[Tag]:
-        data = self._request("POST", "/api/v2/tags/roles", json={"roles_ids": roles_ids, "names": names})
+    def create_for_roles(self, *, roles_ids: Sequence[str], names: Sequence[str]) -> list[Tag]:
+        data = self._request(
+            "POST", "/api/v2/tags/roles", json={"roles_ids": list(roles_ids), "names": list(names)}
+        )
         return [Tag.model_validate(t) for t in cast(list[Any], data)]
 
-    def connect_roles(self, *, roles_ids: list[str], tags_ids: list[str]) -> None:
+    def connect_roles(self, *, roles_ids: Sequence[str], tags_ids: Sequence[str]) -> None:
         self._request(
-            "POST", "/api/v2/tags/roles/connections", json={"roles_ids": roles_ids, "tags_ids": tags_ids}
+            "POST", "/api/v2/tags/roles/connections", json={"roles_ids": list(roles_ids), "tags_ids": list(tags_ids)}
         )
 
-    def disconnect_roles(self, *, roles_ids: list[str], tags_ids: list[str]) -> None:
+    def disconnect_roles(self, *, roles_ids: Sequence[str], tags_ids: Sequence[str]) -> None:
         self._request(
-            "DELETE", "/api/v2/tags/roles/connections", json={"roles_ids": roles_ids, "tags_ids": tags_ids}
+            "DELETE", "/api/v2/tags/roles/connections", json={"roles_ids": list(roles_ids), "tags_ids": list(tags_ids)}
         )
