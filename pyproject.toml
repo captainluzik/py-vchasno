@@ -106,6 +106,7 @@ ruff_fix = true
 
 [tool.unasyncd.per_file_add_replacements."src/vchasno/_async/_http.py"]
 "AsyncTransport" = "SyncTransport"
+"aiter_bytes" = "iter_bytes"
 
 [tool.unasyncd.per_file_add_replacements."src/vchasno/_async/endpoints/_base.py"]
 "AsyncEndpoint" = "SyncEndpoint"

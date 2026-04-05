@@ -174,7 +174,7 @@ class SyncTransport:
         """Stream a response as chunks. Use for large file downloads."""
         with self._client.stream(method, path, params=params) as response:
             _raise_for_status(response)
-            yield response.aiter_bytes(chunk_size=chunk_size)
+            yield response.iter_bytes(chunk_size=chunk_size)
 
     def close(self) -> None:
         self._client.close()

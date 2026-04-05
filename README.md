@@ -14,7 +14,7 @@ Python SDK for [Vchasno.EDO](https://edo.vchasno.ua) API v2 — Ukrainian electr
 - **Sync & Async** clients — `Vchasno` and `AsyncVchasno` (async-first with `unasyncd`)
 - **Full API coverage** — all 19 endpoint groups (documents, signatures, comments, reviews, tags, archive, cloud signer, etc.)
 - **Transport hardening** — automatic retry on network errors and `429` with full jitter exponential backoff
-- **HTTPS enforcement** — secure by default; `allow_http=True` opt-in for testing
+- **HTTPS enforcement** — secure by default (transport-level `allow_http=True` for testing)
 - **Streaming downloads** — `request_stream` context manager for large files
 - **Pydantic v2** models with full type annotations and `extra="allow"` for forward compatibility
 - **`py.typed`** — first-class support for mypy / pyright
@@ -95,7 +95,7 @@ Generate an API token in [Vchasno.EDO settings](https://edo.vchasno.ua). The tok
 client = Vchasno(token="your-api-token")
 ```
 
-The `base_url` must use HTTPS (default: `https://edo.vchasno.ua`). Pass `allow_http=True` only for local testing.
+The `base_url` must use HTTPS (default: `https://edo.vchasno.ua`).
 
 Optionally override the base URL and timeout:
 
@@ -105,9 +105,11 @@ client = Vchasno(
     base_url="https://edo.vchasno.ua",  # default; HTTPS required
     timeout=60.0,                        # seconds, default 30
     max_retries=5,                       # retry on 429 / network errors, default 3
-    allow_http=False,                    # set True only for local testing
 )
 ```
+
+> **Note:** For local testing with HTTP, use the transport directly:
+> `SyncTransport(base_url="http://localhost", token="...", allow_http=True)`
 
 ## API reference
 
