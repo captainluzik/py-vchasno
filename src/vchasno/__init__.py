@@ -17,11 +17,11 @@ __version__ = "0.2.0"
 
 __all__ = [
     "AsyncVchasno",
-    "Vchasno",
-    "VchasnoError",
-    "VchasnoAPIError",
     "AuthenticationError",
-    "RateLimitError",
-    "NotFoundError",
     "BadRequestError",
+    "NotFoundError",
+    "RateLimitError",
+    "Vchasno",
+    "VchasnoAPIError",
+    "VchasnoError",
 ]

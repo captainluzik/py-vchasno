@@ -70,7 +70,7 @@ def _retry_delay(response: httpx.Response, attempt: int) -> float:
             dt = parsedate_to_datetime(retry_after)
             delay = max(0.0, (dt - datetime.now(timezone.utc)).total_seconds())
             return min(delay, _MAX_RETRY_DELAY)
-        except Exception:  # noqa: BLE001
+        except Exception:
             pass
     max_delay = _RETRY_BASE_DELAY * (2**attempt)
     return random.uniform(0, min(max_delay, _MAX_RETRY_DELAY))

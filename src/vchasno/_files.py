@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+from collections.abc import Generator
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Any, BinaryIO, Generator
+from typing import BinaryIO
 
 
 @contextmanager
@@ -22,7 +23,7 @@ def open_file(
     if isinstance(file, (str, Path)):
         path = Path(file)
         resolved_name = filename or path.name
-        fp: BinaryIO = open(path, "rb")  # noqa: SIM115
+        fp: BinaryIO = open(path, "rb")
         try:
             yield resolved_name, fp
         finally:
@@ -48,7 +49,7 @@ def open_files(
         for f in files:
             if isinstance(f, (str, Path)):
                 p = Path(f)
-                fp = open(p, "rb")  # noqa: SIM115
+                fp = open(p, "rb")
                 opened.append(fp)
                 file_tuples.append((field_name, (p.name, fp)))
             else:

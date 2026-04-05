@@ -199,4 +199,6 @@ select = ["E", "F", "I", "UP", "B", "SIM", "A", "C4", "T20", "RUF"]
 ignore = [
     "SIM115",  # open() without context manager — intentional in file-upload patterns
     "A003",    # class attribute 'type' shadows builtin — matches API field names
+    "UP038",   # isinstance(x, (str, Path)) — X | Y syntax not supported at runtime in Python 3.10
+    "RUF022",  # __all__ sorted by category, not alphabetically — intentional for readability
 ]
