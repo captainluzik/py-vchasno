@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, cast
 
 from vchasno._sync.endpoints._base import SyncEndpoint
 from vchasno.models.tags import Tag, TagList, TagRoleList
@@ -28,28 +28,28 @@ class SyncTags(SyncEndpoint):
         data = self._request(
             "POST", "/api/v2/tags/documents", json={"documents_ids": documents_ids, "names": names}
         )
-        return [Tag.model_validate(t) for t in data]
+        return [Tag.model_validate(t) for t in cast(list[Any], data)]
 
-    def connect_documents(self, *, documents_ids: list[str], tags_ids: list[str]) -> Any:
-        return self._request(
+    def connect_documents(self, *, documents_ids: list[str], tags_ids: list[str]) -> None:
+        self._request(
             "POST", "/api/v2/tags/documents/connections", json={"documents_ids": documents_ids, "tags_ids": tags_ids}
         )
 
-    def disconnect_documents(self, *, documents_ids: list[str], tags_ids: list[str]) -> Any:
-        return self._request(
+    def disconnect_documents(self, *, documents_ids: list[str], tags_ids: list[str]) -> None:
+        self._request(
             "DELETE", "/api/v2/tags/documents/connections", json={"documents_ids": documents_ids, "tags_ids": tags_ids}
         )
 
     def create_for_roles(self, *, roles_ids: list[str], names: list[str]) -> list[Tag]:
         data = self._request("POST", "/api/v2/tags/roles", json={"roles_ids": roles_ids, "names": names})
-        return [Tag.model_validate(t) for t in data]
+        return [Tag.model_validate(t) for t in cast(list[Any], data)]
 
-    def connect_roles(self, *, roles_ids: list[str], tags_ids: list[str]) -> Any:
-        return self._request(
+    def connect_roles(self, *, roles_ids: list[str], tags_ids: list[str]) -> None:
+        self._request(
             "POST", "/api/v2/tags/roles/connections", json={"roles_ids": roles_ids, "tags_ids": tags_ids}
         )
 
-    def disconnect_roles(self, *, roles_ids: list[str], tags_ids: list[str]) -> Any:
-        return self._request(
+    def disconnect_roles(self, *, roles_ids: list[str], tags_ids: list[str]) -> None:
+        self._request(
             "DELETE", "/api/v2/tags/roles/connections", json={"roles_ids": roles_ids, "tags_ids": tags_ids}
         )

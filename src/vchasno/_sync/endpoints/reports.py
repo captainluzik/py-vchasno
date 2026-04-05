@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import cast
+
 from vchasno._sync.endpoints._base import SyncEndpoint
 from vchasno.models.common import ReportRequest, ReportStatus
 
@@ -26,4 +28,4 @@ class SyncReports(SyncEndpoint):
         return ReportStatus.model_validate(data)
 
     def download(self, report_id: str) -> bytes:
-        return self._request("GET", f"/api/v2/actions/download-report/{report_id}")
+        return cast(bytes, self._request("GET", f"/api/v2/actions/download-report/{report_id}"))

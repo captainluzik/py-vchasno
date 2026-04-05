@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, cast
 
 from vchasno._sync.endpoints._base import SyncEndpoint
 from vchasno.models.documents import Comment, CommentList
@@ -36,10 +36,10 @@ class SyncComments(SyncEndpoint):
         data = self._request("GET", f"/api/v2/documents/{document_id}/comments")
         if isinstance(data, dict) and "comments" in data:
             return [Comment.model_validate(c) for c in data["comments"]]
-        return [Comment.model_validate(c) for c in data]
+        return [Comment.model_validate(c) for c in cast(list[Any], data)]
 
-    def add(self, document_id: str, *, text: str, is_internal: bool = False) -> Any:
-        return self._request(
+    def add(self, document_id: str, *, text: str, is_internal: bool = False) -> None:
+        self._request(
             "POST",
             f"/api/v2/documents/{document_id}/comments",
             json={"text": text, "is_internal": is_internal},

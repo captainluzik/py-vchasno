@@ -12,19 +12,17 @@ from vchasno.models.documents import DeleteRequestRef
 class SyncDeleteRequests(SyncEndpoint):
     """Asynchronous delete-requests endpoint group."""
 
-    def create(self, document_id: str, *, message: str) -> Any:
-        return self._request(
-            "POST", f"/api/v2/documents/{document_id}/delete-requests", json={"message": message}
-        )
+    def create(self, document_id: str, *, message: str) -> None:
+        self._request("POST", f"/api/v2/documents/{document_id}/delete-requests", json={"message": message})
 
-    def cancel(self, document_id: str) -> Any:
-        return self._request("DELETE", f"/api/v2/documents/{document_id}/delete-requests")
+    def cancel(self, document_id: str) -> None:
+        self._request("DELETE", f"/api/v2/documents/{document_id}/delete-requests")
 
-    def accept(self, document_id: str) -> Any:
-        return self._request("POST", f"/api/v2/documents/{document_id}/delete-requests/acceptions")
+    def accept(self, document_id: str) -> None:
+        self._request("POST", f"/api/v2/documents/{document_id}/delete-requests/acceptions")
 
-    def reject(self, document_id: str, *, reject_message: str) -> Any:
-        return self._request(
+    def reject(self, document_id: str, *, reject_message: str) -> None:
+        self._request(
             "POST",
             f"/api/v2/documents/{document_id}/delete-requests/rejections",
             json={"reject_message": reject_message},

@@ -149,9 +149,9 @@ class TestSyncDocuments:
 
     def test_set_signers(self):
         ep, req = self._make()
-        req.return_value = {"ok": True}
-        result = ep.set_signers("d1", signer_entities=[{"email": "e@m.com"}], is_parallel=False)
-        assert result == {"ok": True}
+        req.return_value = None
+        ep.set_signers("d1", signer_entities=[{"email": "e@m.com"}], is_parallel=False)
+        req.assert_called_once()
 
     def test_download_original_no_version(self):
         ep, req = self._make()

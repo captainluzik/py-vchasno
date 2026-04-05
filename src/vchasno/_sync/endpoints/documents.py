@@ -7,7 +7,7 @@ from typing import Any, BinaryIO, cast
 
 from vchasno._sync.endpoints._base import SyncEndpoint
 from vchasno._utils import UNSET as _UNSET
-from vchasno._utils import _Unset
+from vchasno._utils import _Unset, collect_params, collect_update
 from vchasno.models.common import UpdatedIds
 from vchasno.models.documents import (
     Document,
@@ -17,11 +17,6 @@ from vchasno.models.documents import (
     IncomingDocumentList,
     StructuredData,
 )
-
-
-def _collect(**kwargs: Any) -> dict[str, Any]:
-    """Build a params dict dropping *_UNSET* and *None* values."""
-    return {k: v for k, v in kwargs.items() if v is not _UNSET and v is not None}
 
 
 class SyncDocuments(SyncEndpoint):
@@ -45,7 +40,7 @@ class SyncDocuments(SyncEndpoint):
         sd_status: str | None = None,
         **extra: Any,
     ) -> DocumentList:
-        params = _collect(
+        params = collect_params(
             status=status,
             cursor=cursor,
             limit=limit,
@@ -76,11 +71,25 @@ class SyncDocuments(SyncEndpoint):
         *,
         filename: str | None = None,
         category: int | None = None,
+        recipient_edrpou: str | None = None,
         edrpou: str | None = None,
         email: str | None = None,
         title: str | None = None,
         **extra: Any,
     ) -> DocumentList:
+        """Upload a document.
+
+        Args:
+            file: Path or file object to upload.
+            filename: Override the filename sent in multipart form-data.
+            category: Document category ID.
+            recipient_edrpou: Recipient EDRPOU code.
+            edrpou: **Deprecated** — use *recipient_edrpou* instead.
+            email: Recipient email.
+            title: Document title.
+            **extra: Additional query parameters forwarded to the API.
+        """
+        resolved_edrpou = recipient_edrpou or edrpou
         opened: BinaryIO | None = None
         if isinstance(file, (str, Path)):
             path = Path(file)
@@ -91,9 +100,9 @@ class SyncDocuments(SyncEndpoint):
             filename = filename or "document"
         try:
             files = [("file", (filename, fp))]
-            query = _collect(
+            query = collect_params(
                 category=category,
-                edrpou=edrpou,
+                edrpou=resolved_edrpou,
                 email=email,
                 title=title,
                 **extra,
@@ -110,23 +119,23 @@ class SyncDocuments(SyncEndpoint):
         self,
         document_id: str,
         *,
-        title: str | _Unset = _UNSET,
-        number: str | _Unset = _UNSET,
-        date: str | _Unset = _UNSET,
-        amount: int | _Unset = _UNSET,
-        category: int | _Unset = _UNSET,
-        first_sign_by: str | _Unset = _UNSET,
+        title: str | None | _Unset = _UNSET,
+        number: str | None | _Unset = _UNSET,
+        date: str | None | _Unset = _UNSET,
+        amount: int | None | _Unset = _UNSET,
+        category: int | None | _Unset = _UNSET,
+        first_sign_by: str | None | _Unset = _UNSET,
         **extra: Any,
     ) -> Document:
-        body = _collect(
+        body = collect_update(
             title=title,
             number=number,
             date=date,
             amount=amount,
             category=category,
             first_sign_by=first_sign_by,
-            **extra,
         )
+        body.update(extra)
         data = self._request("PATCH", f"/api/v2/documents/{document_id}/info", json=body)
         return Document.model_validate(data)
 
@@ -155,13 +164,13 @@ class SyncDocuments(SyncEndpoint):
 
     # -- flow / signers -------------------------------------------------
 
-    def set_flow(self, document_id: str, flow: list[dict[str, Any]]) -> Any:
-        return self._request("POST", f"/api/v2/documents/{document_id}/flow", json=flow)
+    def set_flow(self, document_id: str, flow: list[dict[str, Any]]) -> None:
+        self._request("POST", f"/api/v2/documents/{document_id}/flow", json=flow)
 
     def set_signers(
         self, document_id: str, *, signer_entities: list[dict[str, str]], is_parallel: bool = True
-    ) -> Any:
-        return self._request(
+    ) -> None:
+        self._request(
             "POST",
             f"/api/v2/documents/{document_id}/signers",
             json={"signer_entities": signer_entities, "is_parallel": is_parallel},
@@ -185,7 +194,7 @@ class SyncDocuments(SyncEndpoint):
         sd_status: str | None = None,
         **extra: Any,
     ) -> IncomingDocumentList:
-        params = _collect(
+        params = collect_params(
             status=status,
             cursor=cursor,
             limit=limit,
@@ -208,8 +217,9 @@ class SyncDocuments(SyncEndpoint):
         params = {"version": version} if version is not None else None
         return cast(bytes, self._request("GET", f"/api/v2/documents/{document_id}/original", params=params))
 
-    def download_archive(self, document_id: str) -> bytes:
-        return cast(bytes, self._request("GET", f"/api/v2/documents/{document_id}/archive"))
+    def download_archive(self, document_id: str, *, with_instruction: int | None = None) -> bytes:
+        params = {"with_instruction": with_instruction} if with_instruction is not None else None
+        return cast(bytes, self._request("GET", f"/api/v2/documents/{document_id}/archive", params=params))
 
     def download_p7s(self, document_id: str) -> bytes:
         return cast(bytes, self._request("GET", f"/api/v2/documents/{document_id}/p7s"))
@@ -236,6 +246,8 @@ class SyncDocuments(SyncEndpoint):
     # -- status / actions -----------------------------------------------
 
     def statuses(self, document_ids: list[str]) -> DocumentStatusList:
+        if len(document_ids) > 500:
+            raise ValueError("Maximum 500 document IDs per request")
         data = self._request("POST", "/api/v2/documents/statuses", json={"document_ids": document_ids})
         return DocumentStatusList.model_validate(data)
 

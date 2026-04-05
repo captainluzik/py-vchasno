@@ -75,7 +75,7 @@ class TestSyncCloudSigner:
     def test_create_sign_session_minimal(self):
         ep, req = self._make()
         req.return_value = {"id": "ss1"}
-        result = ep.create_sign_session(document_id="d1", edrpou="e", email="e@m.com", type="sign_session")
+        result = ep.create_sign_session(document_id="d1", edrpou="e", email="e@m.com", session_type="sign_session")
         assert isinstance(result, SignSession)
         call_json = req.call_args.kwargs["json"]
         assert "on_cancel_url" not in call_json
@@ -84,7 +84,12 @@ class TestSyncCloudSigner:
         ep, req = self._make()
         req.return_value = {"id": "ss1"}
         ep.create_sign_session(
-            document_id="d1", edrpou="e", email="e@m.com", type="sign_session", on_cancel_url="cu", on_finish_url="fu"
+            document_id="d1",
+            edrpou="e",
+            email="e@m.com",
+            session_type="sign_session",
+            on_cancel_url="cu",
+            on_finish_url="fu",
         )
         call_json = req.call_args.kwargs["json"]
         assert call_json["on_cancel_url"] == "cu"
