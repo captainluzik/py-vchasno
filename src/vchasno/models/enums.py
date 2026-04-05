@@ -2,7 +2,15 @@
 
 from __future__ import annotations
 
-from enum import IntEnum, StrEnum
+import sys
+from enum import Enum, IntEnum
+
+if sys.version_info >= (3, 11):
+    from enum import StrEnum
+else:
+
+    class StrEnum(str, Enum):  # type: ignore[no-redef]
+        """Backport of enum.StrEnum for Python 3.10."""
 
 
 class DocumentStatus(IntEnum):
