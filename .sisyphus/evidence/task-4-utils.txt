@@ -1,4 +1,0 @@
-collect_update: OK
-collect_params: OK
-validate_id rejects traversal: OK
-validate_id accepts valid: OK
