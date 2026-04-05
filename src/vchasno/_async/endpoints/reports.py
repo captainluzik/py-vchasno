@@ -1,0 +1,29 @@
+"""Reports endpoints."""
+
+from __future__ import annotations
+
+from vchasno._async.endpoints._base import AsyncEndpoint
+from vchasno.models.common import ReportRequest, ReportStatus
+
+
+class AsyncReports(AsyncEndpoint):
+    """Asynchronous reports endpoint group."""
+
+    async def request_document_actions(self, *, date_from: str, date_to: str) -> ReportRequest:
+        data = await self._request(
+            "POST", "/api/v2/document-actions/request-report", json={"date_from": date_from, "date_to": date_to}
+        )
+        return ReportRequest.model_validate(data)
+
+    async def request_user_actions(self, *, date_from: str, date_to: str) -> ReportRequest:
+        data = await self._request(
+            "POST", "/api/v2/user-actions/request-report", json={"date_from": date_from, "date_to": date_to}
+        )
+        return ReportRequest.model_validate(data)
+
+    async def status(self, report_id: str) -> ReportStatus:
+        data = await self._request("GET", f"/api/v2/actions/report-status/{report_id}")
+        return ReportStatus.model_validate(data)
+
+    async def download(self, report_id: str) -> bytes:
+        return await self._request("GET", f"/api/v2/actions/download-report/{report_id}")
