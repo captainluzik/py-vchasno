@@ -1,5 +1,8 @@
 # py-vchasno
 
+> **Disclaimer:** This is an **unofficial** SDK, not affiliated with or endorsed by Vchasno.
+> It was built based on publicly available information about the Vchasno.EDO API v2.
+
 [![PyPI version](https://img.shields.io/pypi/v/py-vchasno.svg)](https://pypi.org/project/py-vchasno/)
 [![Python 3.10+](https://img.shields.io/pypi/pyversions/py-vchasno.svg)](https://pypi.org/project/py-vchasno/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
