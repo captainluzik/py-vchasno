@@ -11,10 +11,12 @@ Python SDK for [Vchasno.EDO](https://edo.vchasno.ua) API v2 — Ukrainian electr
 
 ## Features
 
-- **Sync & Async** clients — `Vchasno` and `AsyncVchasno`
+- **Sync & Async** clients — `Vchasno` and `AsyncVchasno` (async-first with `unasyncd`)
 - **Full API coverage** — all 19 endpoint groups (documents, signatures, comments, reviews, tags, archive, cloud signer, etc.)
-- **Automatic retry** on `429 Too Many Requests` with exponential backoff
-- **Pydantic v2** models with full type annotations
+- **Transport hardening** — automatic retry on network errors and `429` with full jitter exponential backoff
+- **HTTPS enforcement** — secure by default; `allow_http=True` opt-in for testing
+- **Streaming downloads** — `request_stream` context manager for large files
+- **Pydantic v2** models with full type annotations and `extra="allow"` for forward compatibility
 - **`py.typed`** — first-class support for mypy / pyright
 
 ## Installation
@@ -93,14 +95,17 @@ Generate an API token in [Vchasno.EDO settings](https://edo.vchasno.ua). The tok
 client = Vchasno(token="your-api-token")
 ```
 
+The `base_url` must use HTTPS (default: `https://edo.vchasno.ua`). Pass `allow_http=True` only for local testing.
+
 Optionally override the base URL and timeout:
 
 ```python
 client = Vchasno(
     token="your-api-token",
-    base_url="https://edo.vchasno.ua",  # default
+    base_url="https://edo.vchasno.ua",  # default; HTTPS required
     timeout=60.0,                        # seconds, default 30
-    max_retries=5,                       # retry on 429, default 3
+    max_retries=5,                       # retry on 429 / network errors, default 3
+    allow_http=False,                    # set True only for local testing
 )
 ```
 
@@ -186,6 +191,10 @@ content = client.documents.download_original("document-uuid", version="latest")
 # Download ZIP archive with signatures
 archive = client.documents.download_archive("document-uuid", with_instruction=1)
 
+# Streaming download (large files, avoids loading into memory)
+# async: async with client.documents.request_stream("GET", "/path") as stream: ...
+# sync equivalent also available
+
 # Download P7S / ASIC containers
 p7s = client.documents.download_p7s("document-uuid")
 asic = client.documents.download_asic("document-uuid")
@@ -222,7 +231,7 @@ client.documents.unarchive(["uuid-1", "uuid-2"])
 result = client.documents.mark_as_processed(["uuid-1", "uuid-2"])
 
 # Structured data (sd_status must be confirmed/downloaded)
-sd = client.documents.structured_data_download("document-uuid", format="json")
+sd = client.documents.structured_data_download("document-uuid", output_format="json")
 ```
 
 ### Signatures — `client.signatures`
@@ -478,7 +487,7 @@ sign_session = client.cloud_signer.create_sign_session(
     document_id="document-uuid",
     edrpou="12345678",
     email="signer@company.com",
-    type="sign_session",
+    session_type="sign_session",
     on_finish_url="https://your-app.com/done",
 )
 print(f"Redirect to: {sign_session.url}")
@@ -565,7 +574,7 @@ with Vchasno(token="xxx") as client:
 
 ## Rate limiting
 
-Vchasno API allows 10 requests/second per company. The SDK automatically retries `429` responses with exponential backoff (1s, 2s, 4s by default, configurable via `max_retries`).
+Vchasno API allows 10 requests/second per company. The SDK automatically retries `429` responses and transient network errors (`httpx.TransportError`, `httpx.TimeoutException`) with full jitter exponential backoff. The `Retry-After` header is honoured (capped at 60 s). Configure retries via `max_retries` (default 3).
 
 ## Important notes
 
@@ -573,6 +582,26 @@ Vchasno API allows 10 requests/second per company. The SDK automatically retries
 - **Datetime** format: `YYYY-MM-DD` or `YYYY-MM-DDTHH:MM`.
 - **File limits**: single file up to 15 MB; ZIP archive up to 500 files / 100 MB.
 - **Pagination**: use `cursor` / `next_cursor` pattern for all list endpoints.
+
+## Development
+
+### Async-First Development
+
+This SDK uses async-first development with [`unasyncd`](https://github.com/provinzkraut/unasyncd).
+
+- Write code in `src/vchasno/_async/` only
+- Run `unasyncd` to generate `src/vchasno/_sync/`
+- Never edit `_sync/` files manually
+- CI verifies sync freshness: `unasyncd --force && git diff --exit-code src/vchasno/_sync/`
+
+### Running checks
+
+```bash
+pip install -e ".[dev]"
+ruff check src/ tests/
+mypy src/
+pytest
+```
 
 ## License
 

@@ -202,6 +202,42 @@ class TestSyncTransport:
         sync_transport.request("GET", "/retry-after")
         mock_sleep.assert_called_once_with(5.0)
 
+    def test_https_enforcement(self):
+        """HTTPS enforcement rejects HTTP base_url."""
+        with pytest.raises(ValueError, match="HTTPS"):
+            SyncTransport(base_url="http://insecure.com", token="t")
+
+    def test_https_enforcement_allow_http(self):
+        """allow_http=True bypasses HTTPS check."""
+        t = SyncTransport(base_url="http://test.com", token="t", allow_http=True)
+        t.close()
+
+    @patch("vchasno._sync._http.time.sleep")
+    def test_retry_on_transport_error(self, mock_sleep, sync_transport: SyncTransport):
+        """Network errors trigger retry."""
+        sync_transport._client.request.side_effect = [
+            httpx.ConnectError("connection failed"),
+            _make_response(status_code=200),
+        ]
+        sync_transport._max_retries = 3
+        result = sync_transport.request("GET", "/test")
+        assert result.status_code == 200
+        mock_sleep.assert_called_once()
+
+    def test_retry_after_cap(self):
+        """Retry-After header is capped at 60 seconds."""
+        from vchasno._sync._http import _MAX_RETRY_DELAY, _retry_delay
+
+        resp = httpx.Response(429, headers={"content-type": "text/plain", "retry-after": "999999"}, content=b"")
+        delay = _retry_delay(resp, 0)
+        assert delay <= _MAX_RETRY_DELAY
+
+    def test_repr_masks_token(self, sync_transport: SyncTransport):
+        """Transport __repr__ masks the API token."""
+        r = repr(sync_transport)
+        assert "token=***" in r
+        assert "test-token" not in r
+
 
 # ---------------------------------------------------------------------------
 # AsyncTransport
@@ -291,3 +327,43 @@ class TestAsyncTransport:
             files=[("f", ("n", b"data"))],
             headers={"X-Custom": "v"},
         )
+
+    def test_https_enforcement(self):
+        """HTTPS enforcement rejects HTTP base_url."""
+        with pytest.raises(ValueError, match="HTTPS"):
+            AsyncTransport(base_url="http://insecure.com", token="t")
+
+    def test_https_enforcement_allow_http(self):
+        """allow_http=True bypasses HTTPS check."""
+        t = AsyncTransport(base_url="http://test.com", token="t", allow_http=True)
+        # AsyncClient doesn't need sync close; no connections opened yet
+        del t
+
+    @pytest.mark.asyncio
+    @patch("vchasno._async._http.asyncio.sleep", new_callable=AsyncMock)
+    async def test_retry_on_transport_error(self, mock_sleep, async_transport: AsyncTransport):
+        """Network errors trigger retry."""
+        async_transport._client.request = AsyncMock(
+            side_effect=[
+                httpx.ConnectError("connection failed"),
+                _make_response(status_code=200),
+            ]
+        )
+        async_transport._max_retries = 3
+        result = await async_transport.request("GET", "/test")
+        assert result.status_code == 200
+        mock_sleep.assert_called_once()
+
+    def test_retry_after_cap(self):
+        """Retry-After header is capped at 60 seconds."""
+        from vchasno._async._http import _MAX_RETRY_DELAY, _retry_delay
+
+        resp = httpx.Response(429, headers={"content-type": "text/plain", "retry-after": "999999"}, content=b"")
+        delay = _retry_delay(resp, 0)
+        assert delay <= _MAX_RETRY_DELAY
+
+    def test_repr_masks_token(self, async_transport: AsyncTransport):
+        """Transport __repr__ masks the API token."""
+        r = repr(async_transport)
+        assert "token=***" in r
+        assert "test-token" not in r
