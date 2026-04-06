@@ -13,6 +13,9 @@ Python SDK for [Vchasno.EDO](https://edo.vchasno.ua) API v2 — Ukrainian electr
 
 - **Sync & Async** clients — `Vchasno` and `AsyncVchasno` (async-first with `unasyncd`)
 - **Full API coverage** — all 19 endpoint groups (documents, signatures, comments, reviews, tags, archive, cloud signer, etc.)
+- **Auto-pagination** — `CursorPage` supports direct iteration over all pages
+- **Cloud Signer helpers** — `sign_and_wait()` for automatic polling and signing
+- **State Validation** — SDK validates document state before operations (FSM)
 - **Transport hardening** — automatic retry on network errors and `429` with full jitter exponential backoff
 - **HTTPS enforcement** — secure by default (transport-level `allow_http=True` for testing)
 - **Streaming downloads** — `request_stream` context manager for large files
@@ -53,23 +56,37 @@ pip install .
 
 ```python
 from vchasno import Vchasno
+from vchasno.models import DocumentStatus
 
-with Vchasno(token="your-api-token") as client:
-    # List signed documents
-    docs = client.documents.list(status=7008)
-    for doc in docs.documents:
-        print(f"{doc.title} — {doc.status_text}")
+client = Vchasno(token="your-token")
 
-    # Upload a document
-    result = client.documents.upload(
-        "invoice.pdf",
-        recipient_edrpou="12345678",
-        category=2,
-    )
+# List documents with typed enums
+page = client.documents.list(status=DocumentStatus.FULLY_SIGNED)
+for doc in page.data:
+    print(doc.id, doc.title)
 
-    # Check counterparty registration
-    info = client.company.check(edrpou="12345678")
-    print(f"{info.name}: registered={info.is_registered}")
+# Auto-pagination
+for doc in client.documents.list(status=DocumentStatus.UPLOADED):
+    print(doc.id)  # iterates ALL pages automatically
+
+# Upload with full configuration
+docs = client.documents.upload(
+    "contract.pdf",
+    recipient_edrpou="12345678",
+    expected_owner_signatures=2,
+    first_sign_by="owner",
+    template_id="tmpl-1",
+)
+
+# Cloud signing with automatic polling
+client.cloud_signer.sign_and_wait(
+    document_id=doc.id,
+    client_id="cloud-key-id",
+    password="key-password",
+    timeout=120.0,
+)
+
+client.close()
 ```
 
 ### Async client
@@ -77,12 +94,20 @@ with Vchasno(token="your-api-token") as client:
 ```python
 import asyncio
 from vchasno import AsyncVchasno
+from vchasno.models import DocumentStatus
 
 async def main():
-    async with AsyncVchasno(token="your-api-token") as client:
-        docs = await client.documents.list(status=7008)
-        incoming = await client.documents.list_incoming()
-        print(f"Outgoing: {len(docs.documents)}, Incoming: {len(incoming.documents)}")
+    async with AsyncVchasno(token="your-token") as client:
+        # Auto-pagination works in async too
+        async for doc in client.documents.list(status=DocumentStatus.FULLY_SIGNED):
+            print(doc.id)
+
+        # Cloud signing
+        await client.cloud_signer.sign_and_wait(
+            document_id="doc-id",
+            client_id="cloud-key-id",
+            password="key-password",
+        )
 
 asyncio.run(main())
 ```
@@ -108,8 +133,29 @@ client = Vchasno(
 )
 ```
 
-> **Note:** For local testing with HTTP, use the transport directly:
-> `SyncTransport(base_url="http://localhost", token="...", allow_http=True)`
+## Custom httpx Client
+
+Ви можете використовувати власний `httpx.Client` або `httpx.AsyncClient` для налаштування проксі, сертифікатів або інших параметрів транспорту.
+
+```python
+import httpx
+from vchasno import Vchasno
+
+custom = httpx.Client(proxy="http://proxy:8080")
+client = Vchasno(token="tok", http_client=custom)
+```
+
+## State Validation
+
+SDK автоматично перевіряє стан документа перед виконанням операцій (наприклад, чи можна відправити документ у поточному статусі).
+
+```python
+# SDK validates document state before operations
+client.documents.send(doc_id)  # raises DocumentStateError if status doesn't allow send
+
+# Disable validation for performance
+client.documents.send(doc_id, validate=False)
+```
 
 ## API reference
 
@@ -119,18 +165,20 @@ All endpoints are accessible as attributes of the client object. Each group prov
 
 ```python
 # List outgoing documents with filters
-docs = client.documents.list(
-    status=7008,
+page = client.documents.list(
+    status=DocumentStatus.FULLY_SIGNED,
     date_from="2024-01-01",
     date_to="2024-12-31",
-    category=1,
-    with_tags=True,
 )
 
-# Paginate with cursor
+# Access items via .data
+for doc in page.data:
+    print(doc.id)
+
+# Manual pagination with cursor
 page = client.documents.list()
-while page.next_cursor:
-    page = client.documents.list(cursor=page.next_cursor)
+if page.next_cursor:
+    next_page = client.documents.list(cursor=page.next_cursor)
 
 # Get single document
 doc = client.documents.get("document-uuid")
@@ -172,7 +220,7 @@ client.documents.set_flow("document-uuid", [
 
 # List incoming documents
 incoming = client.documents.list_incoming(
-    status=7004,
+    status=DocumentStatus.READY_TO_SIGN,
     date_created_from="2024-01-01",
 )
 
@@ -474,25 +522,13 @@ client.cloud_signer.sign_document(
     auth_session_token=token,
 )
 
-# Refresh token flow
-session = client.cloud_signer.create_session(
-    duration=3600, client_id="key-uuid", use_refresh_token=True,
-)
-result = client.cloud_signer.check_refresh_session(auth_session_id=session.auth_session_id)
-refreshed = client.cloud_signer.refresh_token(
-    auth_session_id=session.auth_session_id,
-    refresh_token=result.refresh_token,
-)
-
-# Create view/sign session for personal cabinet
-sign_session = client.cloud_signer.create_sign_session(
+# sign_and_wait() helper (automatic polling)
+client.cloud_signer.sign_and_wait(
     document_id="document-uuid",
-    edrpou="12345678",
-    email="signer@company.com",
-    session_type="sign_session",
-    on_finish_url="https://your-app.com/done",
+    client_id="key-uuid",
+    password="key-password",
+    timeout=120.0,
 )
-print(f"Redirect to: {sign_session.url}")
 ```
 
 ### Billing — `client.billing`
@@ -513,6 +549,14 @@ result = client.company.check_upload("counterparties.xlsx")
 for c in result.companies:
     print(f"{c.edrpou} {c.name}: {c.is_registered}")
 ```
+
+## Migration from v0.2
+
+- `documents.list()` тепер повертає `CursorPage[Document]` замість `DocumentList`.
+- Доступ до елементів списку через `.data` замість `.documents`.
+- Нові виключення: `DocumentStateError`, `CloudSignerError`, `TimeoutError`, `ValidationError`.
+- Усі моделі тепер успадковуються від `VchasnoModel`.
+- Додано автоматичну пагінацію при ітерації по результату `list()`.
 
 ## Enums
 
@@ -535,11 +579,6 @@ DocumentStatus.UPLOADED          # 7000
 DocumentStatus.READY_TO_SIGN     # 7001
 DocumentStatus.FULLY_SIGNED      # 7008
 DocumentStatus.ANNULLED          # 7011
-
-# Document categories
-DocumentCategory.CONTRACT        # 3
-DocumentCategory.INVOICE         # 2
-DocumentCategory.OTHER           # 15
 ```
 
 ## Error handling
@@ -553,6 +592,7 @@ from vchasno import (
     RateLimitError,
     NotFoundError,
     BadRequestError,
+    DocumentStateError,
 )
 
 with Vchasno(token="xxx") as client:
@@ -560,11 +600,11 @@ with Vchasno(token="xxx") as client:
         doc = client.documents.get("non-existent-id")
     except NotFoundError:
         print("Document not found")
+    except DocumentStateError as e:
+        print(f"Invalid document state: {e}")
     except AuthenticationError:
         print("Invalid or expired token")
     except RateLimitError:
-        # Automatic retry handles most 429s;
-        # this only fires after max_retries exhausted
         print("Rate limit exceeded after retries")
     except BadRequestError as e:
         print(f"Bad request: {e.response_body}")
@@ -583,7 +623,7 @@ Vchasno API allows 10 requests/second per company. The SDK automatically retries
 - **Amounts** are always in **kopecks** (1 UAH = 100 kopecks). Example: `amount=1500000` means 15,000.00 UAH.
 - **Datetime** format: `YYYY-MM-DD` or `YYYY-MM-DDTHH:MM`.
 - **File limits**: single file up to 15 MB; ZIP archive up to 500 files / 100 MB.
-- **Pagination**: use `cursor` / `next_cursor` pattern for all list endpoints.
+- **Pagination**: use `cursor` / `next_cursor` pattern for all list endpoints or direct iteration for auto-pagination.
 
 ## Development
 
