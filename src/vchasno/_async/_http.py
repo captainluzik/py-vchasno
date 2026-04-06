@@ -87,21 +87,29 @@ class AsyncTransport:
         timeout: float = _DEFAULT_TIMEOUT,
         max_retries: int = _MAX_RETRIES,
         allow_http: bool = False,
+        http_client: httpx.AsyncClient | None = None,
     ) -> None:
-        if not allow_http and not base_url.startswith("https://"):
-            raise ValueError(
-                f"base_url must use HTTPS for security. Got: {base_url!r}. "
-                "Pass allow_http=True to override (testing only)."
+        if http_client is not None:
+            self._client = http_client
+            self._owns_client = False
+            if "Authorization" not in http_client.headers:
+                http_client.headers["Authorization"] = token
+        else:
+            if not allow_http and not base_url.startswith("https://"):
+                raise ValueError(
+                    f"base_url must use HTTPS for security. Got: {base_url!r}. "
+                    "Pass allow_http=True to override (testing only)."
+                )
+            self._owns_client = True
+            self._client = httpx.AsyncClient(
+                base_url=base_url,
+                headers={"Authorization": token},
+                timeout=timeout,
             )
         self._max_retries = max_retries
-        self._client = httpx.AsyncClient(
-            base_url=base_url,
-            headers={"Authorization": token},
-            timeout=timeout,
-        )
 
     def __repr__(self) -> str:
-        return f"AsyncTransport(base_url={self._client.base_url!r}, token=***)"
+        return f"{type(self).__name__}(base_url={self._client.base_url!r}, token=***)"
 
     # -- public ---------------------------------------------------------
 
@@ -177,4 +185,5 @@ class AsyncTransport:
             yield response.aiter_bytes(chunk_size=chunk_size)
 
     async def close(self) -> None:
-        await self._client.aclose()
+        if self._owns_client:
+            await self._client.aclose()

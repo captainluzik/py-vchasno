@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+import httpx
+
 if TYPE_CHECKING:
     from typing import Self
 
@@ -47,6 +49,7 @@ class AsyncVchasno:
         timeout: float = 30.0,
         max_retries: int = 3,
         allow_http: bool = False,
+        http_client: httpx.AsyncClient | None = None,
     ) -> None:
         self._transport = AsyncTransport(
             base_url=base_url,
@@ -54,6 +57,7 @@ class AsyncVchasno:
             timeout=timeout,
             max_retries=max_retries,
             allow_http=allow_http,
+            http_client=http_client,
         )
         self.documents = AsyncDocuments(self._transport)
         self.signatures = AsyncSignatures(self._transport)

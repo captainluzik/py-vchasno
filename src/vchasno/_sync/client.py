@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+import httpx
+
 from vchasno._sync._http import SyncTransport
 from vchasno._sync.endpoints.archive import SyncArchive
 from vchasno._sync.endpoints.billing import SyncBilling
@@ -48,6 +50,7 @@ class Vchasno:
         timeout: float = 30.0,
         max_retries: int = 3,
         allow_http: bool = False,
+        http_client: httpx.Client | None = None,
     ) -> None:
         self._transport = SyncTransport(
             base_url=base_url,
@@ -55,6 +58,7 @@ class Vchasno:
             timeout=timeout,
             max_retries=max_retries,
             allow_http=allow_http,
+            http_client=http_client,
         )
         self.documents = SyncDocuments(self._transport)
         self.signatures = SyncSignatures(self._transport)
