@@ -143,6 +143,17 @@ class AccessSettingsLevel(StrEnum):
     PRIVATE = "private"
 
 
+class CommentType(StrEnum):
+    """Comment types returned by the API."""
+
+    COMMENT = "comment"
+    REJECTION = "rejection"
+    DELETE_REQUEST = "delete_request"
+    DELETE_REQUEST_REJECTION = "delete_request_rejection"
+    DOCUMENT_REVOKE_INITIATE = "document_revoke_initiate"
+    DOCUMENT_REVOKE_REJECTION = "document_revoke_rejection"
+
+
 class ViewersStrategy(StrEnum):
     """Viewers editing strategy."""
 

@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any, cast
 
 from vchasno._async.endpoints._base import AsyncEndpoint
+from vchasno._utils import validate_id
 from vchasno.models.common import CustomField, DocumentField
 
 
@@ -22,10 +23,12 @@ class AsyncFields(AsyncEndpoint):
         return CustomField.model_validate(data)
 
     async def list_for_document(self, document_id: str) -> list[DocumentField]:
+        validate_id(document_id, "document_id")
         data = await self._request("GET", f"/api/v2/documents/{document_id}/fields")
         return [DocumentField.model_validate(f) for f in cast(list[Any], data)]
 
     async def add_to_document(self, document_id: str, *, field_id: str, value: str, is_required: bool = False) -> None:
+        validate_id(document_id, "document_id")
         await self._request(
             "POST",
             f"/api/v2/documents/{document_id}/fields",

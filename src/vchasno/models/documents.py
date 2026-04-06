@@ -4,23 +4,21 @@ from __future__ import annotations
 
 from typing import Any
 
-from pydantic import BaseModel
+from pydantic import Field
+
+from vchasno.models._base import VchasnoModel
 
 
-class Signature(BaseModel):
+class Signature(VchasnoModel):
     """A document signature (short form from document list)."""
-
-    model_config = {"extra": "allow"}
 
     id: str
     email: str | None = None
     date_created: str | None = None
 
 
-class SignatureDetail(BaseModel):
+class SignatureDetail(VchasnoModel):
     """Detailed signature information."""
-
-    model_config = {"extra": "allow"}
 
     id: str
     edrpou: str | None = None
@@ -35,20 +33,23 @@ class SignatureDetail(BaseModel):
     stamp: StampInfo | None = None
 
 
-class StampInfo(BaseModel):
+class StampInfo(VchasnoModel):
     """Stamp/seal information attached to a signature."""
 
     serial_number: str | None = None
     issuer: str | None = None
     subject: str | None = None
+    acsk: str | None = None
+    company_name: str | None = None
+    edrpou: str | None = None
+    power_type: str | None = None
+    signer_name: str | None = None
+    signer_position: str | None = None
+    timestamp: str | None = None
 
-    model_config = {"extra": "allow"}
 
-
-class Recipient(BaseModel):
+class Recipient(VchasnoModel):
     """Recipient info."""
-
-    model_config = {"extra": "allow"}
 
     edrpou: str | None = None
     emails: list[str] | None = None
@@ -56,10 +57,8 @@ class Recipient(BaseModel):
     is_emails_hidden: bool | None = None
 
 
-class Version(BaseModel):
+class Version(VchasnoModel):
     """Document version."""
-
-    model_config = {"extra": "allow"}
 
     id: str
     name: str | None = None
@@ -69,34 +68,28 @@ class Version(BaseModel):
     extension: str | None = None
 
 
-class CategoryDetails(BaseModel):
+class CategoryDetails(VchasnoModel):
     """Category details attached to a document."""
 
     category_id: int | None = None
     category_title: str | None = None
     is_public: bool | None = None
 
-    model_config = {"extra": "allow"}
 
-
-class AccessSettings(BaseModel):
+class AccessSettings(VchasnoModel):
     """Document access settings."""
 
     level: str | None = None
 
-    model_config = {"extra": "allow"}
 
-
-class TagRef(BaseModel):
+class TagRef(VchasnoModel):
     """Tag reference attached to a document."""
 
     id: str | None = None
     name: str | None = None
 
-    model_config = {"extra": "allow"}
 
-
-class FieldRef(BaseModel):
+class FieldRef(VchasnoModel):
     """Custom field value reference attached to a document."""
 
     field_id: str | None = None
@@ -105,23 +98,17 @@ class FieldRef(BaseModel):
     value: str | None = None
     is_required: bool | None = None
 
-    model_config = {"extra": "allow"}
 
-
-class DeleteRequestRef(BaseModel):
+class DeleteRequestRef(VchasnoModel):
     """Delete request reference attached to a document."""
 
     id: str | None = None
     status: str | None = None
     message: str | None = None
 
-    model_config = {"extra": "allow"}
 
-
-class _BaseDocument(BaseModel):
+class _BaseDocument(VchasnoModel):
     """Shared fields between outgoing and incoming documents."""
-
-    model_config = {"extra": "allow"}
 
     id: str
     extension: str | None = None
@@ -164,10 +151,8 @@ class Document(_BaseDocument):
     is_internal: bool | None = None
 
 
-class DocumentList(BaseModel):
+class DocumentList(VchasnoModel):
     """Paginated list of documents."""
-
-    model_config = {"extra": "allow"}
 
     documents: list[Document]
     next_cursor: str | None = None
@@ -180,19 +165,15 @@ class IncomingDocument(_BaseDocument):
     company_name: str | None = None
 
 
-class IncomingDocumentList(BaseModel):
+class IncomingDocumentList(VchasnoModel):
     """Paginated list of incoming documents."""
-
-    model_config = {"extra": "allow"}
 
     documents: list[IncomingDocument]
     next_cursor: str | None = None
 
 
-class DownloadDocument(BaseModel):
+class DownloadDocument(VchasnoModel):
     """Download info for a document."""
-
-    model_config = {"extra": "allow"}
 
     id: str
     extension: str | None = None
@@ -202,10 +183,8 @@ class DownloadDocument(BaseModel):
     xml_to_pdf_url: str | None = None
 
 
-class DownloadDocumentList(BaseModel):
+class DownloadDocumentList(VchasnoModel):
     """Response for download-documents endpoint."""
-
-    model_config = {"extra": "allow"}
 
     status: int | None = None
     ready: bool | None = None
@@ -214,37 +193,29 @@ class DownloadDocumentList(BaseModel):
     documents: list[DownloadDocument]
 
 
-class DocumentStatusItem(BaseModel):
+class DocumentStatusItem(VchasnoModel):
     """Single item in the statuses response."""
-
-    model_config = {"extra": "allow"}
 
     document_id: str
     status_id: int
     status_text: str
 
 
-class DocumentStatusList(BaseModel):
+class DocumentStatusList(VchasnoModel):
     """Response for POST /documents/statuses."""
-
-    model_config = {"extra": "allow"}
 
     data_list: list[DocumentStatusItem]
 
 
-class Author(BaseModel):
+class Author(VchasnoModel):
     """Comment author."""
 
     email: str | None = None
     name: str | None = None
 
-    model_config = {"extra": "allow"}
 
-
-class Comment(BaseModel):
+class Comment(VchasnoModel):
     """Document comment."""
-
-    model_config = {"extra": "allow"}
 
     id: str
     text: str | None = None
@@ -257,19 +228,15 @@ class Comment(BaseModel):
     author: Author | None = None
 
 
-class CommentList(BaseModel):
+class CommentList(VchasnoModel):
     """Paginated list of comments."""
-
-    model_config = {"extra": "allow"}
 
     comments: list[Comment]
     next_cursor: str | None = None
 
 
-class Review(BaseModel):
+class Review(VchasnoModel):
     """Review history entry."""
-
-    model_config = {"extra": "allow"}
 
     user_email: str | None = None
     group_name: str | None = None
@@ -278,10 +245,8 @@ class Review(BaseModel):
     date_created: str | None = None
 
 
-class ReviewRequest(BaseModel):
+class ReviewRequest(VchasnoModel):
     """Review request entry."""
-
-    model_config = {"extra": "allow"}
 
     user_from_email: str | None = None
     user_to_email: str | None = None
@@ -290,10 +255,8 @@ class ReviewRequest(BaseModel):
     date_created: str | None = None
 
 
-class ReviewStatus(BaseModel):
+class ReviewStatus(VchasnoModel):
     """Overall review status of a document."""
-
-    model_config = {"extra": "allow"}
 
     status: str
     is_required: bool | None = None
@@ -301,10 +264,24 @@ class ReviewStatus(BaseModel):
     date_updated: str | None = None
 
 
-class FlowEntry(BaseModel):
-    """Multilateral document flow entry."""
+class FlowEntryInput(VchasnoModel):
+    """Input model for set_flow() — typed alternative to dict."""
 
-    model_config = {"extra": "allow"}
+    edrpou: str
+    emails: list[str] = Field(default_factory=list)
+    order: int = 0
+    sign_num: int = 1
+
+
+class SignerEntityInput(VchasnoModel):
+    """Input model for set_signers() — typed alternative to dict."""
+
+    type: str
+    id: str
+
+
+class FlowEntry(VchasnoModel):
+    """Multilateral document flow entry."""
 
     edrpou: str | None = None
     order: int | None = None
@@ -312,10 +289,8 @@ class FlowEntry(BaseModel):
     emails: list[str] | None = None
 
 
-class StructuredData(BaseModel):
+class StructuredData(VchasnoModel):
     """Structured data from a document (flexible dict)."""
-
-    model_config = {"extra": "allow"}
 
     details: dict[str, Any] | None = None
     parties_information: dict[str, Any] | None = None

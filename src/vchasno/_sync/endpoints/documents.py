@@ -6,17 +6,30 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import IO, Any, cast
 
+from vchasno._files import open_file
+from vchasno._sync._pagination import SyncCursorPage
 from vchasno._sync.endpoints._base import SyncEndpoint
 from vchasno._utils import UNSET as _UNSET
-from vchasno._utils import _Unset, collect_params, collect_update
+from vchasno._utils import _Unset, collect_params, collect_update, validate_id
 from vchasno.models.common import UpdatedIds
 from vchasno.models.documents import (
     Document,
     DocumentList,
     DocumentStatusList,
     DownloadDocumentList,
-    IncomingDocumentList,
+    FlowEntryInput,
+    IncomingDocument,
+    SignerEntityInput,
     StructuredData,
+)
+from vchasno.models.enums import (
+    AccessSettingsLevel,
+    DocumentCategory,
+    DocumentStatus,
+    FirstSignBy,
+    ReviewState,
+    StructuredDataStatus,
+    ViewersStrategy,
 )
 
 
@@ -28,19 +41,48 @@ class SyncDocuments(SyncEndpoint):
     def list(
         self,
         *,
-        status: int | None = None,
+        status: int | DocumentStatus | None = None,
         cursor: str | None = None,
         limit: int | None = None,
-        category: int | None = None,
+        category: int | DocumentCategory | None = None,
         edrpou: str | None = None,
         date_from: str | None = None,
         date_to: str | None = None,
+        date_rejected_from: str | None = None,
+        date_rejected_to: str | None = None,
+        date_document_from: str | None = None,
+        date_document_to: str | None = None,
+        date_finished_from: str | None = None,
+        date_finished_to: str | None = None,
         search: str | None = None,
         tag_id: str | None = None,
         is_archived: bool | None = None,
-        sd_status: str | None = None,
+        sd_status: str | StructuredDataStatus | None = None,
+        extension: str | None = None,
+        recipient_edrpou: str | None = None,
+        number: str | None = None,
+        vendor: str | None = None,
+        vendor_id: str | None = None,
+        ids: list[str] | None = None,
+        has_changed: bool | None = None,
+        is_delivered: bool | None = None,
+        is_internal: bool | None = None,
+        with_tags: bool | None = None,
+        not_tagged: bool | None = None,
+        with_recipients: bool | None = None,
+        with_connections: bool | None = None,
+        amount_eq: int | None = None,
+        amount_gte: int | None = None,
+        amount_lte: int | None = None,
+        with_document_fields: bool | None = None,
+        with_versions: bool | None = None,
+        with_delete_requests: bool | None = None,
+        with_access_settings: bool | None = None,
+        review_state: str | ReviewState | None = None,
+        date_review_approved_from: str | None = None,
+        date_review_approved_to: str | None = None,
         **extra: Any,
-    ) -> DocumentList:
+    ) -> SyncCursorPage[Document]:
         params = collect_params(
             status=status,
             cursor=cursor,
@@ -49,16 +91,58 @@ class SyncDocuments(SyncEndpoint):
             edrpou=edrpou,
             date_from=date_from,
             date_to=date_to,
+            date_rejected_from=date_rejected_from,
+            date_rejected_to=date_rejected_to,
+            date_document_from=date_document_from,
+            date_document_to=date_document_to,
+            date_finished_from=date_finished_from,
+            date_finished_to=date_finished_to,
             search=search,
             tag_id=tag_id,
             is_archived=is_archived,
             sd_status=sd_status,
+            extension=extension,
+            recipient_edrpou=recipient_edrpou,
+            number=number,
+            vendor=vendor,
+            vendor_id=vendor_id,
+            has_changed=has_changed,
+            is_delivered=is_delivered,
+            is_internal=is_internal,
+            with_tags=with_tags,
+            not_tagged=not_tagged,
+            with_recipients=with_recipients,
+            with_connections=with_connections,
+            amount_eq=amount_eq,
+            amount_gte=amount_gte,
+            amount_lte=amount_lte,
+            with_document_fields=with_document_fields,
+            with_versions=with_versions,
+            with_delete_requests=with_delete_requests,
+            with_access_settings=with_access_settings,
+            review_state=review_state,
+            date_review_approved_from=date_review_approved_from,
+            date_review_approved_to=date_review_approved_to,
             **extra,
         )
-        data = self._request("GET", "/api/v2/documents", params=params or None)
-        return DocumentList.model_validate(data)
+        _multi: list[tuple[str, Any]] = []
+        if ids is not None:
+            _multi.extend(("ids", v) for v in ids)
+        if _multi:
+            data = self._request("GET", "/api/v2/documents", params=list(params.items()) + _multi)
+        else:
+            data = self._request("GET", "/api/v2/documents", params=params or None)
+        return SyncCursorPage._from_response(
+            cast(dict[str, Any], data),
+            model_cls=Document,
+            transport=self._t,
+            path="/api/v2/documents",
+            params=params or {},
+            data_key="documents",
+        )
 
     def get(self, document_id: str) -> Document:
+        validate_id(document_id, "document_id")
         data = self._request("GET", f"/api/v2/documents/{document_id}")
         if isinstance(data, dict) and "documents" in data:
             return Document.model_validate(data["documents"][0])
@@ -71,11 +155,37 @@ class SyncDocuments(SyncEndpoint):
         file: str | Path | IO[bytes],
         *,
         filename: str | None = None,
-        category: int | None = None,
+        category: int | DocumentCategory | None = None,
         recipient_edrpou: str | None = None,
         edrpou: str | None = None,
         email: str | None = None,
         title: str | None = None,
+        expected_owner_signatures: int | None = None,
+        expected_recipient_signatures: int | None = None,
+        first_sign_by: str | FirstSignBy | None = None,
+        signer_roles: list[str] | None = None,
+        signer_emails: list[str] | None = None,
+        parallel_signing: bool | None = None,
+        is_internal: bool | None = None,
+        is_multilateral: bool | None = None,
+        is_parallel: bool | None = None,
+        share_to: list[str] | None = None,
+        share_to_groups: list[str] | None = None,
+        reviewers_ids: list[str] | None = None,
+        reviewers_emails: list[str] | None = None,
+        parallel_review: bool | None = None,
+        is_required_review: bool | None = None,
+        tags: list[str] | None = None,
+        parent_id: str | None = None,
+        doc_number: str | None = None,
+        date_document: str | None = None,
+        amount: int | None = None,
+        is_versioned: bool | None = None,
+        template_id: str | None = None,
+        show_recipients: bool | None = None,
+        with_access_settings: bool | None = None,
+        access_settings_level: str | AccessSettingsLevel | None = None,
+        recipient_emails: list[str] | None = None,
         **extra: Any,
     ) -> DocumentList:
         """Upload a document.
@@ -88,30 +198,85 @@ class SyncDocuments(SyncEndpoint):
             edrpou: **Deprecated** — use *recipient_edrpou* instead.
             email: Recipient email.
             title: Document title.
+            expected_owner_signatures: Number of expected owner signatures.
+            expected_recipient_signatures: Number of expected recipient signatures.
+            first_sign_by: Who signs first (``"owner"`` or ``"recipient"``).
+            signer_roles: Role IDs for signers (multi-value).
+            signer_emails: Signer emails (multi-value).
+            parallel_signing: Enable parallel signing.
+            is_internal: Mark as internal document.
+            is_multilateral: Mark as multilateral document.
+            is_parallel: Enable parallel flow.
+            share_to: Role IDs to share document with (multi-value).
+            share_to_groups: Group IDs to share document with (multi-value).
+            reviewers_ids: Reviewer role IDs (multi-value).
+            reviewers_emails: Reviewer emails (multi-value).
+            parallel_review: Enable parallel review.
+            is_required_review: Make review required before signing.
+            tags: Tag names to assign (multi-value).
+            parent_id: Parent document ID for linking.
+            doc_number: Document number.
+            date_document: Document date (``YYYY-MM-DD``).
+            amount: Amount in kopecks.
+            is_versioned: Enable versioning.
+            template_id: Template ID for structured data.
+            show_recipients: Show recipients list.
+            with_access_settings: Include access settings in response.
+            access_settings_level: Access settings level.
+            recipient_emails: Recipient emails (multi-value).
             **extra: Additional query parameters forwarded to the API.
         """
         resolved_edrpou = recipient_edrpou or edrpou
-        opened: IO[bytes] | None = None
-        if isinstance(file, (str, Path)):
-            path = Path(file)
-            filename = filename or path.name
-            opened = fp = open(path, "rb")
-        else:
-            fp = file
-            filename = filename or "document"
-        try:
-            files = [("file", (filename, fp))]
+        with open_file(file, filename=filename) as (resolved_name, fp):
+            files = [("file", (resolved_name, fp))]
             query = collect_params(
                 category=category,
                 edrpou=resolved_edrpou,
                 email=email,
                 title=title,
+                expected_owner_signatures=expected_owner_signatures,
+                expected_recipient_signatures=expected_recipient_signatures,
+                first_sign_by=first_sign_by,
+                parallel_signing=parallel_signing,
+                is_internal=is_internal,
+                is_multilateral=is_multilateral,
+                is_parallel=is_parallel,
+                parallel_review=parallel_review,
+                is_required_review=is_required_review,
+                parent_id=parent_id,
+                doc_number=doc_number,
+                date_document=date_document,
+                amount=amount,
+                is_versioned=is_versioned,
+                template_id=template_id,
+                show_recipients=show_recipients,
+                with_access_settings=with_access_settings,
+                access_settings_level=access_settings_level,
                 **extra,
             )
-            data = self._request("POST", "/api/v2/documents", params=query or None, files=files)
-        finally:
-            if opened is not None:
-                opened.close()
+            _multi: list[tuple[str, Any]] = []
+            _mv: list[tuple[str, list[str] | None]] = [
+                ("signer_roles", signer_roles),
+                ("signer_emails", signer_emails),
+                ("share_to", share_to),
+                ("share_to_groups", share_to_groups),
+                ("reviewers_ids", reviewers_ids),
+                ("reviewers_emails", reviewers_emails),
+                ("tags", tags),
+                ("recipient_emails", recipient_emails),
+            ]
+            for _name, _values in _mv:
+                if _values is not None:
+                    _multi.extend((_name, v) for v in _values)
+            if _multi:
+                data = self._request(
+                    "POST",
+                    "/api/v2/documents",
+                    params=list(query.items()) + _multi,
+                    files=files,
+                )
+            else:
+                data = self._request("POST", "/api/v2/documents", params=query or None, files=files)
         if isinstance(data, dict) and "documents" in data:
             return DocumentList.model_validate(data)
         return DocumentList(documents=[Document.model_validate(data)])
@@ -124,10 +289,17 @@ class SyncDocuments(SyncEndpoint):
         number: str | None | _Unset = _UNSET,
         date: str | None | _Unset = _UNSET,
         amount: int | None | _Unset = _UNSET,
-        category: int | None | _Unset = _UNSET,
-        first_sign_by: str | None | _Unset = _UNSET,
+        category: int | DocumentCategory | None | _Unset = _UNSET,
+        first_sign_by: str | FirstSignBy | None | _Unset = _UNSET,
+        validate: bool = True,
         **extra: Any,
     ) -> Document:
+        validate_id(document_id, "document_id")
+        if validate:
+            doc = self.get(document_id)
+            from vchasno._state import validate_document_state
+
+            validate_document_state(doc.status, "update_info")
         body = collect_update(
             title=title,
             number=number,
@@ -140,22 +312,30 @@ class SyncDocuments(SyncEndpoint):
         data = self._request("PATCH", f"/api/v2/documents/{document_id}/info", json=body)
         return Document.model_validate(data)
 
-    def update_recipient(self, document_id: str, *, edrpou: str, email: str) -> None:
+    def update_recipient(self, document_id: str, *, edrpou: str, email: str, validate: bool = True) -> None:
+        validate_id(document_id, "document_id")
+        if validate:
+            doc = self.get(document_id)
+            from vchasno._state import validate_document_state
+
+            validate_document_state(doc.status, "update_recipient")
         self._request(
             "PATCH", f"/api/v2/documents/{document_id}/recipient", json={"edrpou": edrpou, "email": email}
         )
 
-    def update_access_settings(self, document_id: str, *, level: str) -> None:
+    def update_access_settings(self, document_id: str, *, level: str | AccessSettingsLevel) -> None:
+        validate_id(document_id, "document_id")
         self._request("PATCH", f"/api/v2/documents/{document_id}/access-settings", json={"level": level})
 
     def update_viewers(
         self,
         document_id: str,
         *,
-        strategy: str,
+        strategy: str | ViewersStrategy,
         groups_ids: Sequence[str] | None = None,
         roles_ids: Sequence[str] | None = None,
     ) -> None:
+        validate_id(document_id, "document_id")
         body: dict[str, Any] = {"strategy": strategy}
         if groups_ids is not None:
             body["groups_ids"] = list(groups_ids)
@@ -165,16 +345,37 @@ class SyncDocuments(SyncEndpoint):
 
     # -- flow / signers -------------------------------------------------
 
-    def set_flow(self, document_id: str, flow: Sequence[dict[str, Any]]) -> None:
-        self._request("POST", f"/api/v2/documents/{document_id}/flow", json=list(flow))
+    def set_flow(
+        self, document_id: str, flow: Sequence[dict[str, Any] | FlowEntryInput], *, validate: bool = True
+    ) -> None:
+        validate_id(document_id, "document_id")
+        if validate:
+            doc = self.get(document_id)
+            from vchasno._state import validate_document_state
+
+            validate_document_state(doc.status, "set_flow")
+        payload = [entry.model_dump() if isinstance(entry, FlowEntryInput) else entry for entry in flow]
+        self._request("POST", f"/api/v2/documents/{document_id}/flow", json=payload)
 
     def set_signers(
-        self, document_id: str, *, signer_entities: Sequence[dict[str, str]], is_parallel: bool = True
+        self,
+        document_id: str,
+        *,
+        signer_entities: Sequence[dict[str, str] | SignerEntityInput],
+        is_parallel: bool = True,
+        validate: bool = True,
     ) -> None:
+        validate_id(document_id, "document_id")
+        if validate:
+            doc = self.get(document_id)
+            from vchasno._state import validate_document_state
+
+            validate_document_state(doc.status, "set_signers")
+        payload = [entry.model_dump() if isinstance(entry, SignerEntityInput) else entry for entry in signer_entities]
         self._request(
             "POST",
             f"/api/v2/documents/{document_id}/signers",
-            json={"signer_entities": list(signer_entities), "is_parallel": is_parallel},
+            json={"signer_entities": payload, "is_parallel": is_parallel},
         )
 
     # -- incoming -------------------------------------------------------
@@ -182,50 +383,123 @@ class SyncDocuments(SyncEndpoint):
     def list_incoming(
         self,
         *,
-        status: int | None = None,
+        status: int | DocumentStatus | None = None,
         cursor: str | None = None,
-        limit: int | None = None,
-        category: int | None = None,
-        edrpou: str | None = None,
-        date_from: str | None = None,
-        date_to: str | None = None,
-        search: str | None = None,
+        category: int | DocumentCategory | None = None,
+        date_created_from: str | None = None,
+        date_created_to: str | None = None,
+        date_sent_from: str | None = None,
+        date_sent_to: str | None = None,
+        date_document_from: str | None = None,
+        date_document_to: str | None = None,
+        date_finished_from: str | None = None,
+        date_finished_to: str | None = None,
+        edrpou_owner: str | None = None,
+        extension: str | None = None,
+        ids: list[str] | None = None,
+        with_recipients: bool | None = None,
+        with_connections: bool | None = None,
         tag_id: str | None = None,
+        not_tagged: bool | None = None,
+        amount_eq: int | None = None,
+        amount_gte: int | None = None,
+        amount_lte: int | None = None,
+        with_document_fields: bool | None = None,
+        with_versions: bool | None = None,
+        processed: bool | None = None,
+        with_delete_requests: bool | None = None,
+        with_access_settings: bool | None = None,
         is_archived: bool | None = None,
-        sd_status: str | None = None,
+        review_state: str | ReviewState | None = None,
+        date_review_approved_from: str | None = None,
+        date_review_approved_to: str | None = None,
+        sd_status: str | StructuredDataStatus | None = None,
         **extra: Any,
-    ) -> IncomingDocumentList:
+    ) -> SyncCursorPage[IncomingDocument]:
         params = collect_params(
             status=status,
             cursor=cursor,
-            limit=limit,
             category=category,
-            edrpou=edrpou,
-            date_from=date_from,
-            date_to=date_to,
-            search=search,
+            date_created_from=date_created_from,
+            date_created_to=date_created_to,
+            date_sent_from=date_sent_from,
+            date_sent_to=date_sent_to,
+            date_document_from=date_document_from,
+            date_document_to=date_document_to,
+            date_finished_from=date_finished_from,
+            date_finished_to=date_finished_to,
+            edrpou_owner=edrpou_owner,
+            extension=extension,
+            with_recipients=with_recipients,
+            with_connections=with_connections,
             tag_id=tag_id,
+            not_tagged=not_tagged,
+            amount_eq=amount_eq,
+            amount_gte=amount_gte,
+            amount_lte=amount_lte,
+            with_document_fields=with_document_fields,
+            with_versions=with_versions,
+            processed=processed,
+            with_delete_requests=with_delete_requests,
+            with_access_settings=with_access_settings,
             is_archived=is_archived,
+            review_state=review_state,
+            date_review_approved_from=date_review_approved_from,
+            date_review_approved_to=date_review_approved_to,
             sd_status=sd_status,
             **extra,
         )
-        data = self._request("GET", "/api/v2/incoming-documents", params=params or None)
-        return IncomingDocumentList.model_validate(data)
+        _multi: list[tuple[str, Any]] = []
+        if ids is not None:
+            _multi.extend(("ids", v) for v in ids)
+        if _multi:
+            data = self._request("GET", "/api/v2/incoming-documents", params=list(params.items()) + _multi)
+        else:
+            data = self._request("GET", "/api/v2/incoming-documents", params=params or None)
+        return SyncCursorPage._from_response(
+            cast(dict[str, Any], data),
+            model_cls=IncomingDocument,
+            transport=self._t,
+            path="/api/v2/incoming-documents",
+            params=params or {},
+            data_key="documents",
+        )
 
     # -- downloads ------------------------------------------------------
 
     def download_original(self, document_id: str, *, version: str | None = None) -> bytes:
+        validate_id(document_id, "document_id")
         params = {"version": version} if version is not None else None
         return cast(bytes, self._request("GET", f"/api/v2/documents/{document_id}/original", params=params))
 
-    def download_archive(self, document_id: str, *, with_instruction: int | None = None) -> bytes:
-        params = {"with_instruction": with_instruction} if with_instruction is not None else None
-        return cast(bytes, self._request("GET", f"/api/v2/documents/{document_id}/archive", params=params))
+    def download_archive(
+        self,
+        document_id: str,
+        *,
+        with_instruction: int | None = None,
+        with_xml_preview: bool | None = None,
+        convert_to_signature_format: str | None = None,
+        filenames_max_length: int | None = None,
+    ) -> bytes:
+        validate_id(document_id, "document_id")
+        if filenames_max_length is not None and not (10 <= filenames_max_length <= 255):
+            raise ValueError("filenames_max_length must be between 10 and 255")
+        params = collect_params(
+            with_instruction=with_instruction,
+            with_xml_preview=with_xml_preview,
+            convert_to_signature_format=convert_to_signature_format,
+            filenames_max_length=filenames_max_length,
+        )
+        return cast(
+            bytes, self._request("GET", f"/api/v2/documents/{document_id}/archive", params=params or None)
+        )
 
     def download_p7s(self, document_id: str) -> bytes:
+        validate_id(document_id, "document_id")
         return cast(bytes, self._request("GET", f"/api/v2/documents/{document_id}/p7s"))
 
     def download_asic(self, document_id: str) -> bytes:
+        validate_id(document_id, "document_id")
         return cast(bytes, self._request("GET", f"/api/v2/documents/{document_id}/asic"))
 
     def download_documents(self, ids: Sequence[str]) -> DownloadDocumentList:
@@ -236,12 +510,15 @@ class SyncDocuments(SyncEndpoint):
     # -- conversion / print ---------------------------------------------
 
     def xml_to_pdf_create(self, document_id: str, *, force: bool = False) -> None:
+        validate_id(document_id, "document_id")
         self._request("POST", f"/api/v2/documents/{document_id}/xml-to-pdf", json={"force": force})
 
     def xml_to_pdf_download(self, document_id: str) -> bytes:
+        validate_id(document_id, "document_id")
         return cast(bytes, self._request("GET", f"/api/v2/documents/{document_id}/xml-to-pdf"))
 
     def pdf_print(self, document_id: str) -> bytes:
+        validate_id(document_id, "document_id")
         return cast(bytes, self._request("GET", f"/api/v2/documents/{document_id}/pdf/print"))
 
     # -- status / actions -----------------------------------------------
@@ -252,13 +529,31 @@ class SyncDocuments(SyncEndpoint):
         data = self._request("POST", "/api/v2/documents/statuses", json={"document_ids": list(document_ids)})
         return DocumentStatusList.model_validate(data)
 
-    def reject(self, document_id: str, *, text: str) -> None:
+    def reject(self, document_id: str, *, text: str, validate: bool = True) -> None:
+        validate_id(document_id, "document_id")
+        if validate:
+            doc = self.get(document_id)
+            from vchasno._state import validate_document_state
+
+            validate_document_state(doc.status, "reject")
         self._request("POST", f"/api/v2/documents/{document_id}/reject", json={"text": text})
 
-    def send(self, document_id: str) -> None:
+    def send(self, document_id: str, *, validate: bool = True) -> None:
+        validate_id(document_id, "document_id")
+        if validate:
+            doc = self.get(document_id)
+            from vchasno._state import validate_document_state
+
+            validate_document_state(doc.status, "send")
         self._request("POST", f"/api/v2/documents/{document_id}/send")
 
-    def delete(self, document_id: str) -> None:
+    def delete(self, document_id: str, *, validate: bool = True) -> None:
+        validate_id(document_id, "document_id")
+        if validate:
+            doc = self.get(document_id)
+            from vchasno._state import validate_document_state
+
+            validate_document_state(doc.status, "delete")
         self._request("DELETE", f"/api/v2/documents/{document_id}")
 
     def archive(self, document_ids: Sequence[str], *, directory_id: str | None = None) -> None:
@@ -279,6 +574,7 @@ class SyncDocuments(SyncEndpoint):
     def structured_data_download(
         self, document_id: str, *, output_format: str = "json"
     ) -> StructuredData | bytes:
+        validate_id(document_id, "document_id")
         data = self._request(
             "GET", f"/api/v2/documents/{document_id}/structured-data/download", params={"format": output_format}
         )

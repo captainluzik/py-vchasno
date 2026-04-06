@@ -5,6 +5,47 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0] - 2026-04-06
+
+### Breaking Changes
+
+- `documents.list()` now returns `CursorPage[Document]` instead of `DocumentList` — access items via `.data` property
+- `documents.list_incoming()` returns `CursorPage[Document]` instead of `IncomingDocumentList`
+- `comments.list()` returns `CursorPage[Comment]` instead of `CommentList`
+- `archive.directories()` returns `CursorPage[ArchiveDirectory]` instead of `ArchiveDirectoryList`
+- All models now inherit from `VchasnoModel` instead of `BaseModel`
+
+### Added
+
+- **Auto-pagination**: `CursorPage[T]` with `__iter__`/`__aiter__` for automatic page traversal
+- **State machine validation**: Document lifecycle operations validate status before execution
+- **Cloud signer helper**: `sign_and_wait()` and `create_and_wait_session()` with polling
+- **Custom httpx client**: `Vchasno(token=..., http_client=custom_client)`
+- **New exceptions**: `DocumentStateError`, `CloudSignerError`, `TimeoutError`, `ValidationError`
+- **VchasnoModel base class**: Shared model configuration, `extra="allow"`, `populate_by_name=True`
+- **Full API parameter coverage**: 
+  - `documents.list()`: ~30 new filter parameters (review_state, amount filters, date filters, etc.)
+  - `documents.upload()`: ~20 new parameters (signer config, review, template, etc.)
+  - `documents.list_incoming()`: Correct incoming-specific parameters
+  - `download_archive()`: with_xml_preview, convert_to_signature_format, filenames_max_length
+  - `roles.update()`: All ~50 permission and notification parameters
+- **Typed enums in signatures**: `status: int | DocumentStatus` — accept both raw values and enums
+- **CommentType enum**: comment, rejection, delete_request, etc.
+- **FlowEntryInput / SignerEntityInput**: Typed models for set_flow() and set_signers()
+- **StampInfo expanded**: acsk, power_type, company_name, edrpou, signer_name, signer_position, timestamp
+
+### Fixed
+
+- `SyncTransport.__repr__` now correctly shows "SyncTransport" instead of "AsyncTransport"
+- `validate_id()` enforced on all endpoint path parameters (prevents path injection)
+- `_files.py` utilities used consistently across all file upload endpoints
+- `archive.directories()` validates `limit` parameter (1-500)
+
+### Improved
+
+- Eliminated 57 duplicate `model_config` definitions via VchasnoModel base class
+- `collect_params()` used consistently in all endpoints (comments, delete_requests)
+
 ## [0.2.0] — 2026-04-05
 
 ### Breaking Changes
@@ -112,6 +153,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `py.typed` marker for type checker support.
 - Typed exception hierarchy: `VchasnoError` > `VchasnoAPIError` > `Auth/RateLimit/NotFound/BadRequest`.
 
+[1.0.0]: https://github.com/captainluzik/py-vchasno/releases/tag/v1.0.0
 [0.2.0]: https://github.com/captainluzik/py-vchasno/releases/tag/v0.2.0
 [0.1.1]: https://github.com/captainluzik/py-vchasno/releases/tag/v0.1.1
 [0.1.0]: https://github.com/captainluzik/py-vchasno/releases/tag/v0.1.0

@@ -8,15 +8,17 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
+from vchasno._async._pagination import AsyncCursorPage
 from vchasno._async.endpoints.documents import AsyncDocuments
+from vchasno._sync._pagination import SyncCursorPage
 from vchasno._sync.endpoints.documents import SyncDocuments
+from vchasno.exceptions import DocumentStateError
 from vchasno.models.common import UpdatedIds
 from vchasno.models.documents import (
     Document,
     DocumentList,
     DocumentStatusList,
     DownloadDocumentList,
-    IncomingDocumentList,
 )
 
 DOC_DATA = {"id": "d1", "status": 7000}
@@ -36,7 +38,9 @@ class TestSyncDocuments:
         ep, req = self._make()
         req.return_value = DOC_LIST_DATA
         result = ep.list(status=7000)
-        assert isinstance(result, DocumentList)
+        assert isinstance(result, SyncCursorPage)
+        assert len(result.data) == 1
+        assert result.documents == result.data
         req.assert_called_once_with("GET", "/api/v2/documents", params={"status": 7000})
 
     def test_list_no_params(self):
@@ -103,13 +107,13 @@ class TestSyncDocuments:
     def test_update_info(self):
         ep, req = self._make()
         req.return_value = DOC_DATA
-        result = ep.update_info("d1", title="New Title")
+        result = ep.update_info("d1", title="New Title", validate=False)
         assert isinstance(result, Document)
 
     def test_update_recipient(self):
         ep, req = self._make()
         req.return_value = None
-        ep.update_recipient("d1", edrpou="12345678", email="e@m.com")
+        ep.update_recipient("d1", edrpou="12345678", email="e@m.com", validate=False)
         req.assert_called_once()
 
     def test_update_access_settings(self):
@@ -137,7 +141,7 @@ class TestSyncDocuments:
     def test_set_flow(self):
         ep, req = self._make()
         req.return_value = None
-        ep.set_flow("d1", [{"edrpou": "e", "order": 1}])
+        ep.set_flow("d1", [{"edrpou": "e", "order": 1}], validate=False)
         req.assert_called_once()
         assert req.call_args.kwargs["json"] == [{"edrpou": "e", "order": 1}]
 
@@ -145,12 +149,14 @@ class TestSyncDocuments:
         ep, req = self._make()
         req.return_value = INCOMING_DOC_LIST_DATA
         result = ep.list_incoming(status=7000)
-        assert isinstance(result, IncomingDocumentList)
+        assert isinstance(result, SyncCursorPage)
+        assert len(result.data) == 1
+        assert result.documents == result.data
 
     def test_set_signers(self):
         ep, req = self._make()
         req.return_value = None
-        ep.set_signers("d1", signer_entities=[{"email": "e@m.com"}], is_parallel=False)
+        ep.set_signers("d1", signer_entities=[{"email": "e@m.com"}], is_parallel=False, validate=False)
         req.assert_called_once()
 
     def test_download_original_no_version(self):
@@ -213,19 +219,19 @@ class TestSyncDocuments:
     def test_reject(self):
         ep, req = self._make()
         req.return_value = {"ok": True}
-        ep.reject("d1", text="reason")
+        ep.reject("d1", text="reason", validate=False)
         req.assert_called_with("POST", "/api/v2/documents/d1/reject", json={"text": "reason"})
 
     def test_send(self):
         ep, req = self._make()
         req.return_value = {"ok": True}
-        ep.send("d1")
+        ep.send("d1", validate=False)
         req.assert_called_with("POST", "/api/v2/documents/d1/send")
 
     def test_delete(self):
         ep, req = self._make()
         req.return_value = {"ok": True}
-        ep.delete("d1")
+        ep.delete("d1", validate=False)
         req.assert_called_with("DELETE", "/api/v2/documents/d1")
 
     def test_archive_with_directory(self):
@@ -302,7 +308,9 @@ class TestAsyncDocuments:
         ep, req = self._make()
         req.return_value = DOC_LIST_DATA
         result = await ep.list(status=7000)
-        assert isinstance(result, DocumentList)
+        assert isinstance(result, AsyncCursorPage)
+        assert len(result.data) == 1
+        assert result.documents == result.data
 
     @pytest.mark.asyncio
     async def test_list_no_params(self):
@@ -355,14 +363,14 @@ class TestAsyncDocuments:
     async def test_update_info(self):
         ep, req = self._make()
         req.return_value = DOC_DATA
-        result = await ep.update_info("d1", title="T")
+        result = await ep.update_info("d1", title="T", validate=False)
         assert isinstance(result, Document)
 
     @pytest.mark.asyncio
     async def test_update_recipient(self):
         ep, req = self._make()
         req.return_value = None
-        await ep.update_recipient("d1", edrpou="e", email="e@m.com")
+        await ep.update_recipient("d1", edrpou="e", email="e@m.com", validate=False)
 
     @pytest.mark.asyncio
     async def test_update_access_settings(self):
@@ -390,7 +398,7 @@ class TestAsyncDocuments:
     async def test_set_flow(self):
         ep, req = self._make()
         req.return_value = None
-        await ep.set_flow("d1", [{"edrpou": "e", "order": 1}])
+        await ep.set_flow("d1", [{"edrpou": "e", "order": 1}], validate=False)
         req.assert_called_once()
         assert req.call_args.kwargs["json"] == [{"edrpou": "e", "order": 1}]
 
@@ -399,13 +407,15 @@ class TestAsyncDocuments:
         ep, req = self._make()
         req.return_value = INCOMING_DOC_LIST_DATA
         result = await ep.list_incoming()
-        assert isinstance(result, IncomingDocumentList)
+        assert isinstance(result, AsyncCursorPage)
+        assert len(result.data) == 1
+        assert result.documents == result.data
 
     @pytest.mark.asyncio
     async def test_set_signers(self):
         ep, req = self._make()
         req.return_value = {"ok": True}
-        await ep.set_signers("d1", signer_entities=[])
+        await ep.set_signers("d1", signer_entities=[], validate=False)
 
     @pytest.mark.asyncio
     async def test_download_original(self):
@@ -474,19 +484,19 @@ class TestAsyncDocuments:
     async def test_reject(self):
         ep, req = self._make()
         req.return_value = {}
-        await ep.reject("d1", text="reason")
+        await ep.reject("d1", text="reason", validate=False)
 
     @pytest.mark.asyncio
     async def test_send(self):
         ep, req = self._make()
         req.return_value = {}
-        await ep.send("d1")
+        await ep.send("d1", validate=False)
 
     @pytest.mark.asyncio
     async def test_delete(self):
         ep, req = self._make()
         req.return_value = {}
-        await ep.delete("d1")
+        await ep.delete("d1", validate=False)
 
     @pytest.mark.asyncio
     async def test_archive_with_directory(self):
@@ -553,3 +563,141 @@ class TestAsyncDocuments:
             import os
 
             os.unlink(path)
+
+
+# -- State validation tests ------------------------------------------------
+
+_VALIDATED_METHODS = [
+    ("send", {"validate": True}, "send"),
+    ("reject", {"text": "reason", "validate": True}, "reject"),
+    ("delete", {"validate": True}, "delete"),
+    ("update_info", {"title": "T", "validate": True}, "update_info"),
+    ("update_recipient", {"edrpou": "e", "email": "e@m", "validate": True}, "update_recipient"),
+    ("set_flow", None, "set_flow"),  # positional arg handled separately
+    ("set_signers", {"signer_entities": [], "validate": True}, "set_signers"),
+]
+
+
+class TestAsyncDocumentsStateValidation:
+    """Tests for implicit FSM validation in lifecycle methods."""
+
+    def _make(self) -> tuple[AsyncDocuments, AsyncMock]:
+        transport = MagicMock()
+        ep = AsyncDocuments(transport)
+        ep._request = AsyncMock()
+        return ep, ep._request
+
+    @pytest.mark.asyncio
+    async def test_send_allowed_status(self):
+        """send() should succeed when document status allows it (7001)."""
+        ep, req = self._make()
+        req.side_effect = [{"id": "d1", "status": 7001}, {}]
+        await ep.send("d1")
+        assert req.call_count == 2  # GET (validate) + POST (send)
+
+    @pytest.mark.asyncio
+    async def test_send_forbidden_status(self):
+        """send() should raise DocumentStateError for status 7008 (fully signed)."""
+        ep, req = self._make()
+        req.return_value = {"id": "d1", "status": 7008}
+        with pytest.raises(DocumentStateError, match="send"):
+            await ep.send("d1")
+
+    @pytest.mark.asyncio
+    async def test_send_skip_validation(self):
+        """send(validate=False) should skip the GET call."""
+        ep, req = self._make()
+        req.return_value = {}
+        await ep.send("d1", validate=False)
+        req.assert_called_once_with("POST", "/api/v2/documents/d1/send")
+
+    @pytest.mark.asyncio
+    async def test_reject_allowed_status(self):
+        ep, req = self._make()
+        req.side_effect = [{"id": "d1", "status": 7001}, {}]
+        await ep.reject("d1", text="reason")
+        assert req.call_count == 2
+
+    @pytest.mark.asyncio
+    async def test_reject_forbidden_status(self):
+        ep, req = self._make()
+        req.return_value = {"id": "d1", "status": 7008}
+        with pytest.raises(DocumentStateError, match="reject"):
+            await ep.reject("d1", text="reason")
+
+    @pytest.mark.asyncio
+    async def test_delete_allowed_status(self):
+        ep, req = self._make()
+        req.side_effect = [{"id": "d1", "status": 7000}, {}]
+        await ep.delete("d1")
+        assert req.call_count == 2
+
+    @pytest.mark.asyncio
+    async def test_delete_forbidden_status(self):
+        ep, req = self._make()
+        req.return_value = {"id": "d1", "status": 7002}
+        with pytest.raises(DocumentStateError, match="delete"):
+            await ep.delete("d1")
+
+    @pytest.mark.asyncio
+    async def test_update_info_allowed_status(self):
+        ep, req = self._make()
+        req.side_effect = [{"id": "d1", "status": 7000}, {"id": "d1", "status": 7000}]
+        result = await ep.update_info("d1", title="T")
+        assert isinstance(result, Document)
+
+    @pytest.mark.asyncio
+    async def test_update_info_forbidden_status(self):
+        ep, req = self._make()
+        req.return_value = {"id": "d1", "status": 7008}
+        with pytest.raises(DocumentStateError, match="update_info"):
+            await ep.update_info("d1", title="T")
+
+    @pytest.mark.asyncio
+    async def test_update_recipient_allowed_status(self):
+        ep, req = self._make()
+        req.side_effect = [{"id": "d1", "status": 7001}, None]
+        await ep.update_recipient("d1", edrpou="e", email="e@m")
+
+    @pytest.mark.asyncio
+    async def test_update_recipient_forbidden_status(self):
+        ep, req = self._make()
+        req.return_value = {"id": "d1", "status": 7008}
+        with pytest.raises(DocumentStateError, match="update_recipient"):
+            await ep.update_recipient("d1", edrpou="e", email="e@m")
+
+    @pytest.mark.asyncio
+    async def test_set_flow_allowed_status(self):
+        ep, req = self._make()
+        req.side_effect = [{"id": "d1", "status": 7001}, None]
+        await ep.set_flow("d1", [{"edrpou": "e", "order": 1}])
+        assert req.call_count == 2
+
+    @pytest.mark.asyncio
+    async def test_set_flow_forbidden_status(self):
+        ep, req = self._make()
+        req.return_value = {"id": "d1", "status": 7008}
+        with pytest.raises(DocumentStateError, match="set_flow"):
+            await ep.set_flow("d1", [{"edrpou": "e", "order": 1}])
+
+    @pytest.mark.asyncio
+    async def test_set_signers_allowed_status(self):
+        ep, req = self._make()
+        req.side_effect = [{"id": "d1", "status": 7001}, None]
+        await ep.set_signers("d1", signer_entities=[])
+        assert req.call_count == 2
+
+    @pytest.mark.asyncio
+    async def test_set_signers_forbidden_status(self):
+        ep, req = self._make()
+        req.return_value = {"id": "d1", "status": 7008}
+        with pytest.raises(DocumentStateError, match="set_signers"):
+            await ep.set_signers("d1", signer_entities=[])
+
+    @pytest.mark.asyncio
+    async def test_unknown_status_allows_everything(self):
+        """Unknown statuses should not block any operation."""
+        ep, req = self._make()
+        req.side_effect = [{"id": "d1", "status": 9999}, {}]
+        await ep.send("d1")  # should not raise
+        assert req.call_count == 2

@@ -2,13 +2,11 @@
 
 from __future__ import annotations
 
-from pydantic import BaseModel
+from vchasno.models._base import VchasnoModel
 
 
-class Role(BaseModel):
+class Role(VchasnoModel):
     """A company role / employee."""
-
-    model_config = {"extra": "allow"}
 
     id: str
     status: str | None = None
@@ -17,9 +15,7 @@ class Role(BaseModel):
     position: str | None = None
 
 
-class RoleList(BaseModel):
+class RoleList(VchasnoModel):
     """Response for GET /api/v2/roles."""
-
-    model_config = {"extra": "allow"}
 
     roles: list[Role]

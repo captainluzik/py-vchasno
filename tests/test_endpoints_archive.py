@@ -8,9 +8,11 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
+from vchasno._async._pagination import AsyncCursorPage
 from vchasno._async.endpoints.archive import AsyncArchive
+from vchasno._sync._pagination import SyncCursorPage
 from vchasno._sync.endpoints.archive import SyncArchive
-from vchasno.models.archive import ArchiveDirectoryList, ArchiveImportSignedResult, ArchiveScanResult
+from vchasno.models.archive import ArchiveImportSignedResult, ArchiveScanResult
 
 DIRS_DATA = {"directories": [{"id": 1, "name": "Dir"}], "next_cursor": None}
 SCAN_DATA = {"documents": [{"id": "d1"}]}
@@ -27,7 +29,9 @@ class TestSyncArchive:
         ep, req = self._make()
         req.return_value = DIRS_DATA
         result = ep.directories()
-        assert isinstance(result, ArchiveDirectoryList)
+        assert isinstance(result, SyncCursorPage)
+        assert len(result.data) == 1
+        assert result.directories == result.data
         req.assert_called_with("GET", "/api/v2/archive/directories", params=None)
 
     def test_directories_all_params(self):
@@ -178,7 +182,9 @@ class TestAsyncArchive:
         ep, req = self._make()
         req.return_value = DIRS_DATA
         result = await ep.directories()
-        assert isinstance(result, ArchiveDirectoryList)
+        assert isinstance(result, AsyncCursorPage)
+        assert len(result.data) == 1
+        assert result.directories == result.data
 
     @pytest.mark.asyncio
     async def test_directories_all_params(self):
