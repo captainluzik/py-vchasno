@@ -46,12 +46,14 @@ class AsyncVchasno:
         base_url: str = _BASE_URL,
         timeout: float = 30.0,
         max_retries: int = 3,
+        allow_http: bool = False,
     ) -> None:
         self._transport = AsyncTransport(
             base_url=base_url,
             token=token,
             timeout=timeout,
             max_retries=max_retries,
+            allow_http=allow_http,
         )
         self.documents = AsyncDocuments(self._transport)
         self.signatures = AsyncSignatures(self._transport)

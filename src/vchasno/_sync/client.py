@@ -47,12 +47,14 @@ class Vchasno:
         base_url: str = _BASE_URL,
         timeout: float = 30.0,
         max_retries: int = 3,
+        allow_http: bool = False,
     ) -> None:
         self._transport = SyncTransport(
             base_url=base_url,
             token=token,
             timeout=timeout,
             max_retries=max_retries,
+            allow_http=allow_http,
         )
         self.documents = SyncDocuments(self._transport)
         self.signatures = SyncSignatures(self._transport)
