@@ -2,13 +2,11 @@
 
 from __future__ import annotations
 
-from pydantic import BaseModel
+from vchasno.models._base import VchasnoModel
 
 
-class ArchiveDirectory(BaseModel):
+class ArchiveDirectory(VchasnoModel):
     """An archive directory / folder."""
-
-    model_config = {"extra": "allow"}
 
     id: int
     parent_id: int | None = None
@@ -16,36 +14,28 @@ class ArchiveDirectory(BaseModel):
     date_created: str | None = None
 
 
-class ArchiveDirectoryList(BaseModel):
+class ArchiveDirectoryList(VchasnoModel):
     """Paginated list of archive directories."""
-
-    model_config = {"extra": "allow"}
 
     directories: list[ArchiveDirectory]
     next_cursor: str | None = None
 
 
-class ArchiveScanDocument(BaseModel):
+class ArchiveScanDocument(VchasnoModel):
     """A document created from an uploaded scan."""
 
     id: str | None = None
     title: str | None = None
 
-    model_config = {"extra": "allow"}
 
-
-class ArchiveScanResult(BaseModel):
+class ArchiveScanResult(VchasnoModel):
     """Result of uploading scans."""
-
-    model_config = {"extra": "allow"}
 
     documents: list[ArchiveScanDocument]
 
 
-class ArchiveImportSignedResult(BaseModel):
+class ArchiveImportSignedResult(VchasnoModel):
     """Result of importing a signed document into the archive."""
-
-    model_config = {"extra": "allow"}
 
     document_id: str
     signature_count: int

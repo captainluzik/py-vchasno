@@ -2,13 +2,11 @@
 
 from __future__ import annotations
 
-from pydantic import BaseModel
+from vchasno.models._base import VchasnoModel
 
 
-class DocumentCategoryInfo(BaseModel):
+class DocumentCategoryInfo(VchasnoModel):
     """Document category details returned by GET /api/v2/document-categories."""
-
-    model_config = {"extra": "allow"}
 
     category_id: int
     category_title: str
@@ -17,10 +15,8 @@ class DocumentCategoryInfo(BaseModel):
     date_created: str | None = None
 
 
-class CustomField(BaseModel):
+class CustomField(VchasnoModel):
     """A custom field definition."""
-
-    model_config = {"extra": "allow"}
 
     id: str
     name: str
@@ -31,10 +27,8 @@ class CustomField(BaseModel):
     created_by: str | None = None
 
 
-class DocumentField(BaseModel):
+class DocumentField(VchasnoModel):
     """A custom field value attached to a document."""
-
-    model_config = {"extra": "allow"}
 
     field_id: str
     name: str
@@ -45,37 +39,27 @@ class DocumentField(BaseModel):
     date_created: str | None = None
 
 
-class ReviewSettings(BaseModel):
+class ReviewSettings(VchasnoModel):
     """Review configuration within a template."""
 
-    model_config = {"extra": "allow"}
 
-
-class SignersSettings(BaseModel):
+class SignersSettings(VchasnoModel):
     """Signers configuration within a template."""
 
-    model_config = {"extra": "allow"}
 
-
-class ViewersSettings(BaseModel):
+class ViewersSettings(VchasnoModel):
     """Viewers configuration within a template."""
 
-    model_config = {"extra": "allow"}
 
-
-class FieldsSettings(BaseModel):
+class FieldsSettings(VchasnoModel):
     """Fields configuration within a template."""
 
-    model_config = {"extra": "allow"}
 
-
-class TagsSettings(BaseModel):
+class TagsSettings(VchasnoModel):
     """Tags configuration within a template."""
 
-    model_config = {"extra": "allow"}
 
-
-class Template(BaseModel):
+class Template(VchasnoModel):
     """Scenario / template."""
 
     id: str
@@ -90,37 +74,29 @@ class Template(BaseModel):
     date_updated: str | None = None
 
 
-class ReportRequest(BaseModel):
+class ReportRequest(VchasnoModel):
     """Result of requesting a report."""
-
-    model_config = {"extra": "allow"}
 
     report_id: str
 
 
-class ReportStatus(BaseModel):
+class ReportStatus(VchasnoModel):
     """Report readiness status."""
-
-    model_config = {"extra": "allow"}
 
     status: str
     filename: str | None = None
 
 
-class CompanyCheck(BaseModel):
+class CompanyCheck(VchasnoModel):
     """Company registration check result."""
-
-    model_config = {"extra": "allow"}
 
     edrpou: str
     name: str
     is_registered: bool
 
 
-class CompanyCheckUpload(BaseModel):
+class CompanyCheckUpload(VchasnoModel):
     """Bulk company check result."""
-
-    model_config = {"extra": "allow"}
 
     companies: list[CompanyCheck]
     percentage: str | None = None
@@ -129,15 +105,11 @@ class CompanyCheckUpload(BaseModel):
     rows_total: str | None = None
 
 
-class UpdatedIds(BaseModel):
+class UpdatedIds(VchasnoModel):
     """Generic response with a list of updated IDs."""
-
-    model_config = {"extra": "allow"}
 
     updated_ids: list[str]
 
 
-class ActionResult(BaseModel):
+class ActionResult(VchasnoModel):
     """Generic successful action response (for endpoints with unstructured success bodies)."""
-
-    model_config = {"extra": "allow"}

@@ -1,5 +1,6 @@
 """Vchasno data models — public re-exports."""
 
+from vchasno.models._base import VchasnoModel
 from vchasno.models.archive import (
     ArchiveDirectory,
     ArchiveDirectoryList,
@@ -40,6 +41,7 @@ from vchasno.models.documents import (
     DownloadDocumentList,
     FieldRef,
     FlowEntry,
+    FlowEntryInput,
     IncomingDocument,
     IncomingDocumentList,
     Recipient,
@@ -48,6 +50,7 @@ from vchasno.models.documents import (
     ReviewStatus,
     Signature,
     SignatureDetail,
+    SignerEntityInput,
     StampInfo,
     StructuredData,
     TagRef,
@@ -56,6 +59,7 @@ from vchasno.models.documents import (
 from vchasno.models.enums import (
     AccessSettingsLevel,
     CloudSignerSessionStatus,
+    CommentType,
     DeleteRequestStatus,
     DocumentCategory,
     DocumentStatus,
@@ -71,6 +75,8 @@ from vchasno.models.roles import Role, RoleList
 from vchasno.models.tags import Tag, TagList, TagRole, TagRoleList
 
 __all__ = [
+    # base
+    "VchasnoModel",
     # archive
     "ArchiveDirectory",
     "ArchiveDirectoryList",
@@ -108,6 +114,7 @@ __all__ = [
     "DownloadDocumentList",
     "FieldRef",
     "FlowEntry",
+    "FlowEntryInput",
     "IncomingDocument",
     "IncomingDocumentList",
     "Recipient",
@@ -116,6 +123,7 @@ __all__ = [
     "ReviewStatus",
     "Signature",
     "SignatureDetail",
+    "SignerEntityInput",
     "StampInfo",
     "StructuredData",
     "TagRef",
@@ -123,6 +131,7 @@ __all__ = [
     # enums
     "AccessSettingsLevel",
     "CloudSignerSessionStatus",
+    "CommentType",
     "DeleteRequestStatus",
     "DocumentCategory",
     "DocumentStatus",

@@ -2,53 +2,45 @@
 
 from __future__ import annotations
 
-from pydantic import BaseModel, Field
+from pydantic import Field
+
+from vchasno.models._base import VchasnoModel
 
 
-class CloudSignerSession(BaseModel):
+class CloudSignerSession(VchasnoModel):
     """Response from creating a cloud signer session."""
 
     auth_session_id: str = Field(alias="authSessionId")
     is_mobile_logged: bool = Field(alias="isMobileLogged")
 
-    model_config = {"populate_by_name": True, "extra": "allow"}
 
-
-class CloudSignerSessionCheck(BaseModel):
+class CloudSignerSessionCheck(VchasnoModel):
     """Response from checking a cloud signer session."""
-
-    model_config = {"extra": "allow"}
 
     status: str
     token: str | None = None
 
 
-class CloudSignerRefreshCheck(BaseModel):
+class CloudSignerRefreshCheck(VchasnoModel):
     """Response from checking a refresh-token session."""
 
-    model_config = {"populate_by_name": True, "extra": "allow"}
-
     status: str
     access_token: str | None = Field(None, alias="accessToken")
     refresh_token: str | None = Field(None, alias="refreshToken")
     expires_in: int | None = Field(None, alias="expiresIn")
 
 
-class CloudSignerRefresh(BaseModel):
+class CloudSignerRefresh(VchasnoModel):
     """Response from refreshing an access token."""
 
-    model_config = {"populate_by_name": True, "extra": "allow"}
-
     status: str
     access_token: str | None = Field(None, alias="accessToken")
     refresh_token: str | None = Field(None, alias="refreshToken")
     expires_in: int | None = Field(None, alias="expiresIn")
 
 
-class SignSession(BaseModel):
+class SignSession(VchasnoModel):
     """Viewing / signing session for personal cabinet integration."""
-
-    model_config = {"extra": "allow"}
 
     id: str
     created_by: str | None = None

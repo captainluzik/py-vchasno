@@ -2,13 +2,11 @@
 
 from __future__ import annotations
 
-from pydantic import BaseModel
+from vchasno.models._base import VchasnoModel
 
 
-class Group(BaseModel):
+class Group(VchasnoModel):
     """A user group / team."""
-
-    model_config = {"extra": "allow"}
 
     id: str
     name: str
@@ -17,10 +15,8 @@ class Group(BaseModel):
     date_updated: str | None = None
 
 
-class GroupMember(BaseModel):
+class GroupMember(VchasnoModel):
     """A member of a group."""
-
-    model_config = {"extra": "allow"}
 
     id: str
     role_id: str

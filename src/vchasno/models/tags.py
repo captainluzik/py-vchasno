@@ -2,31 +2,25 @@
 
 from __future__ import annotations
 
-from pydantic import BaseModel
+from vchasno.models._base import VchasnoModel
 
 
-class Tag(BaseModel):
+class Tag(VchasnoModel):
     """A tag / label."""
-
-    model_config = {"extra": "allow"}
 
     id: str
     name: str
     date_created: str | None = None
 
 
-class TagList(BaseModel):
+class TagList(VchasnoModel):
     """Response for GET /api/v2/tags."""
-
-    model_config = {"extra": "allow"}
 
     tags: list[Tag]
 
 
-class TagRole(BaseModel):
+class TagRole(VchasnoModel):
     """Role linked to a tag."""
-
-    model_config = {"extra": "allow"}
 
     role_id: str
     tag_id: str
@@ -34,9 +28,7 @@ class TagRole(BaseModel):
     date_created: str | None = None
 
 
-class TagRoleList(BaseModel):
+class TagRoleList(VchasnoModel):
     """Response for GET /api/v2/tags/{tag_id}/roles."""
-
-    model_config = {"extra": "allow"}
 
     roles: list[TagRole]
