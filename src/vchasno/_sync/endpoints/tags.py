@@ -6,6 +6,7 @@ from collections.abc import Sequence
 from typing import Any, cast
 
 from vchasno._sync.endpoints._base import SyncEndpoint
+from vchasno._utils import validate_id
 from vchasno.models.tags import Tag, TagList, TagRoleList
 
 
@@ -22,6 +23,7 @@ class SyncTags(SyncEndpoint):
         return TagList.model_validate(data)
 
     def roles(self, tag_id: str) -> TagRoleList:
+        validate_id(tag_id, "tag_id")
         data = self._request("GET", f"/api/v2/tags/{tag_id}/roles")
         return TagRoleList.model_validate(data)
 

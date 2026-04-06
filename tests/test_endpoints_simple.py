@@ -9,6 +9,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
+from vchasno._async._pagination import AsyncCursorPage
 from vchasno._async.endpoints.billing import AsyncBilling
 from vchasno._async.endpoints.categories import AsyncCategories
 from vchasno._async.endpoints.children import AsyncChildren
@@ -23,6 +24,7 @@ from vchasno._async.endpoints.signatures import AsyncSignatures
 from vchasno._async.endpoints.tags import AsyncTags
 from vchasno._async.endpoints.templates import AsyncTemplates
 from vchasno._async.endpoints.versions import AsyncVersions
+from vchasno._sync._pagination import SyncCursorPage
 from vchasno._sync.endpoints.billing import SyncBilling
 from vchasno._sync.endpoints.categories import SyncCategories
 from vchasno._sync.endpoints.children import SyncChildren
@@ -48,7 +50,6 @@ from vchasno.models.common import (
 )
 from vchasno.models.documents import (
     Comment,
-    CommentList,
     FlowEntry,
     Review,
     ReviewRequest,
@@ -576,7 +577,9 @@ class TestSyncComments:
         ep, req = self._make()
         req.return_value = {"comments": [{"id": "c1"}], "next_cursor": None}
         result = ep.list(document_id="d1")
-        assert isinstance(result, CommentList)
+        assert isinstance(result, SyncCursorPage)
+        assert len(result.data) == 1
+        assert result.comments == result.data
 
     def test_list_for_document_wrapped(self):
         ep, req = self._make()
@@ -610,7 +613,8 @@ class TestAsyncComments:
         ep, req = self._make()
         req.return_value = {"comments": [], "next_cursor": None}
         result = await ep.list()
-        assert isinstance(result, CommentList)
+        assert isinstance(result, AsyncCursorPage)
+        assert result.comments == result.data
 
     @pytest.mark.asyncio
     async def test_list_for_document_wrapped(self):

@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any, cast
 
 from vchasno._sync.endpoints._base import SyncEndpoint
+from vchasno._utils import validate_id
 from vchasno.models.common import CustomField, DocumentField
 
 
@@ -22,10 +23,12 @@ class SyncFields(SyncEndpoint):
         return CustomField.model_validate(data)
 
     def list_for_document(self, document_id: str) -> list[DocumentField]:
+        validate_id(document_id, "document_id")
         data = self._request("GET", f"/api/v2/documents/{document_id}/fields")
         return [DocumentField.model_validate(f) for f in cast(list[Any], data)]
 
     def add_to_document(self, document_id: str, *, field_id: str, value: str, is_required: bool = False) -> None:
+        validate_id(document_id, "document_id")
         self._request(
             "POST",
             f"/api/v2/documents/{document_id}/fields",

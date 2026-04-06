@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any, cast
 
 from vchasno._sync.endpoints._base import SyncEndpoint
+from vchasno._utils import validate_id
 from vchasno.models.common import Template
 
 
@@ -16,5 +17,6 @@ class SyncTemplates(SyncEndpoint):
         return [Template.model_validate(t) for t in cast(list[Any], data)]
 
     def get(self, template_id: str) -> Template:
+        validate_id(template_id, "template_id")
         data = self._request("GET", f"/api/v2/templates/{template_id}")
         return Template.model_validate(data)

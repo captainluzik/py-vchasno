@@ -6,6 +6,7 @@ from collections.abc import Sequence
 from typing import Any, cast
 
 from vchasno._async.endpoints._base import AsyncEndpoint
+from vchasno._utils import validate_id
 from vchasno.models.tags import Tag, TagList, TagRoleList
 
 
@@ -22,6 +23,7 @@ class AsyncTags(AsyncEndpoint):
         return TagList.model_validate(data)
 
     async def roles(self, tag_id: str) -> TagRoleList:
+        validate_id(tag_id, "tag_id")
         data = await self._request("GET", f"/api/v2/tags/{tag_id}/roles")
         return TagRoleList.model_validate(data)
 

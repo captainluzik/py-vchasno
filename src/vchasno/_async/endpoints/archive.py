@@ -4,11 +4,13 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from pathlib import Path
-from typing import IO, Any
+from typing import IO, Any, cast
 
+from vchasno._async._pagination import AsyncCursorPage
 from vchasno._async.endpoints._base import AsyncEndpoint
+from vchasno._files import open_file, open_files
 from vchasno.models.archive import (
-    ArchiveDirectoryList,
+    ArchiveDirectory,
     ArchiveImportSignedResult,
     ArchiveScanResult,
 )
@@ -24,7 +26,9 @@ class AsyncArchive(AsyncEndpoint):
         search: str | None = None,
         cursor: str | None = None,
         limit: int | None = None,
-    ) -> ArchiveDirectoryList:
+    ) -> AsyncCursorPage[ArchiveDirectory]:
+        if limit is not None and not (1 <= limit <= 500):
+            raise ValueError("limit must be between 1 and 500")
         params: dict[str, Any] = {}
         if parent_id is not None:
             params["parent_id"] = parent_id
@@ -35,7 +39,14 @@ class AsyncArchive(AsyncEndpoint):
         if limit is not None:
             params["limit"] = limit
         data = await self._request("GET", "/api/v2/archive/directories", params=params or None)
-        return ArchiveDirectoryList.model_validate(data)
+        return AsyncCursorPage._from_response(
+            cast(dict[str, Any], data),
+            model_cls=ArchiveDirectory,
+            transport=self._t,
+            path="/api/v2/archive/directories",
+            params=params or {},
+            data_key="directories",
+        )
 
     async def upload_scans(
         self, files: Sequence[str | Path | IO[bytes]], *, parent_id: int | None = None
@@ -43,21 +54,8 @@ class AsyncArchive(AsyncEndpoint):
         params: dict[str, Any] = {}
         if parent_id is not None:
             params["parent_id"] = parent_id
-        file_tuples: list[Any] = []
-        opened: list[Any] = []
-        for f in files:
-            if isinstance(f, (str, Path)):
-                p = Path(f)
-                fp = open(p, "rb")
-                opened.append(fp)
-                file_tuples.append(("files", (p.name, fp)))
-            else:
-                file_tuples.append(("files", ("scan", f)))
-        try:
+        with open_files(files, field_name="files", default_name="scan") as file_tuples:
             data = await self._request("POST", "/api/v2/archive/scans", params=params or None, files=file_tuples)
-        finally:
-            for fp in opened:
-                fp.close()
         return ArchiveScanResult.model_validate(data)
 
     async def import_signed_external(
@@ -68,35 +66,18 @@ class AsyncArchive(AsyncEndpoint):
         filename: str | None = None,
         **metadata: Any,
     ) -> ArchiveImportSignedResult:
-        opened: list[Any] = []
-        if isinstance(file, (str, Path)):
-            p = Path(file)
-            fp = open(p, "rb")
-            opened.append(fp)
-            filename = filename or p.name
-        else:
-            fp = file
-            filename = filename or "document"
-        file_tuples: list[Any] = [("file", (filename, fp))]
-        for sig in signatures:
-            if isinstance(sig, (str, Path)):
-                sp = Path(sig)
-                sfp = open(sp, "rb")
-                opened.append(sfp)
-                file_tuples.append(("signatures", (sp.name, sfp)))
-            else:
-                file_tuples.append(("signatures", ("signature.p7s", sig)))
-        data_fields: dict[str, str] = {}
-        for k, v in metadata.items():
-            if v is not None:
-                data_fields[k] = str(v)
-        try:
+        with (
+            open_file(file, filename=filename, default_name="document") as (fname, fp),
+            open_files(signatures, field_name="signatures", default_name="signature.p7s") as sig_tuples,
+        ):
+            file_tuples: list[Any] = [("file", (fname, fp)), *sig_tuples]
+            data_fields: dict[str, str] = {}
+            for k, v in metadata.items():
+                if v is not None:
+                    data_fields[k] = str(v)
             data = await self._request(
                 "POST", "/api/v2/archive/import-signed", files=file_tuples, data=data_fields or None
             )
-        finally:
-            for f in opened:
-                f.close()
         return ArchiveImportSignedResult.model_validate(data)
 
     async def import_signed_internal(
@@ -106,25 +87,13 @@ class AsyncArchive(AsyncEndpoint):
         filename: str | None = None,
         **metadata: Any,
     ) -> ArchiveImportSignedResult:
-        opened: list[Any] = []
-        if isinstance(signed_file, (str, Path)):
-            p = Path(signed_file)
-            fp = open(p, "rb")
-            opened.append(fp)
-            filename = filename or p.name
-        else:
-            fp = signed_file
-            filename = filename or "signed_document"
-        file_tuples: list[Any] = [("signed_file", (filename, fp))]
-        data_fields: dict[str, str] = {}
-        for k, v in metadata.items():
-            if v is not None:
-                data_fields[k] = str(v)
-        try:
+        with open_file(signed_file, filename=filename, default_name="signed_document") as (fname, fp):
+            file_tuples: list[Any] = [("signed_file", (fname, fp))]
+            data_fields: dict[str, str] = {}
+            for k, v in metadata.items():
+                if v is not None:
+                    data_fields[k] = str(v)
             data = await self._request(
                 "POST", "/api/v2/archive/import-signed", files=file_tuples, data=data_fields or None
             )
-        finally:
-            for f in opened:
-                f.close()
         return ArchiveImportSignedResult.model_validate(data)

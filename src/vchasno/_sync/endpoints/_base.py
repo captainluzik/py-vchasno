@@ -38,7 +38,7 @@ class SyncEndpoint:
             files=files,
             headers=headers,
         )
-        if "json" in resp.headers.get("content-type", ""):
+        if "json" in (resp.headers.get("content-type") or ""):
             if not resp.content:
                 return None
             try:

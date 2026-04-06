@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any, cast
 
 from vchasno._sync.endpoints._base import SyncEndpoint
+from vchasno._utils import validate_id
 from vchasno.models.documents import Review, ReviewRequest, ReviewStatus
 
 
@@ -12,14 +13,17 @@ class SyncReviews(SyncEndpoint):
     """Asynchronous reviews endpoint group."""
 
     def history(self, document_id: str) -> list[Review]:
+        validate_id(document_id, "document_id")
         data = self._request("GET", f"/api/v2/documents/{document_id}/reviews")
         return [Review.model_validate(r) for r in cast(list[Any], data)]
 
     def requests(self, document_id: str) -> list[ReviewRequest]:
+        validate_id(document_id, "document_id")
         data = self._request("GET", f"/api/v2/documents/{document_id}/reviews/requests")
         return [ReviewRequest.model_validate(r) for r in cast(list[Any], data)]
 
     def status(self, document_id: str) -> ReviewStatus:
+        validate_id(document_id, "document_id")
         data = self._request("GET", f"/api/v2/documents/{document_id}/reviews/status")
         return ReviewStatus.model_validate(data)
 
@@ -31,6 +35,7 @@ class SyncReviews(SyncEndpoint):
         group_to_name: str | None = None,
         is_parallel: bool = True,
     ) -> None:
+        validate_id(document_id, "document_id")
         body: dict[str, Any] = {"is_parallel": is_parallel}
         if user_to_email is not None:
             body["user_to_email"] = user_to_email
@@ -45,6 +50,7 @@ class SyncReviews(SyncEndpoint):
         user_to_email: str | None = None,
         group_to_name: str | None = None,
     ) -> None:
+        validate_id(document_id, "document_id")
         body: dict[str, Any] = {}
         if user_to_email is not None:
             body["user_to_email"] = user_to_email
