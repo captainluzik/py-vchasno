@@ -5,6 +5,50 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] — 2026-04-05
+
+### Breaking Changes
+
+- **Package restructure**: async-first architecture with `unasyncd`. Sync code auto-generated.
+  - Import paths changed: `vchasno._async.*` for async, `vchasno._sync.*` for sync
+  - Top-level imports (`from vchasno import Vchasno, AsyncVchasno`) unchanged
+- `create_sign_session`: parameter `type` renamed to `session_type` to avoid shadowing Python builtin
+- Methods that return no meaningful data now return `None` instead of raw response dict:
+  `set_flow`, `set_signers`, `reject`, `send`, `delete`, `archive`, `unarchive`, and others
+
+### Added
+
+- **Transport hardening**: automatic retry on network errors (`httpx.TransportError`, `httpx.TimeoutException`)
+- **Full jitter** in exponential backoff (prevents thundering herd)
+- **HTTPS enforcement**: `base_url` must use HTTPS (pass `allow_http=True` to override for testing)
+- **Retry-After cap**: capped at 60 seconds to prevent indefinite blocking
+- **HTTP-Date format** support in `Retry-After` header (RFC 7231)
+- **Streaming downloads**: `request_stream` context manager for large files
+- `download_archive`: new `with_instruction` parameter
+- `upload`: new `recipient_edrpou` parameter (explicit, replaces ambiguous `edrpou`)
+- `statuses`: client-side validation — rejects >500 document IDs
+- `validate_id`: path parameter sanitization to prevent URL path injection
+- `collect_update`: preserves `None` for PATCH endpoints (clearing fields)
+- `_files.py` and `_utils.py`: shared utilities for file handling and parameter collection
+- `__repr__` on transport classes masks API token
+- `extra="allow"` on all Pydantic API response models (forward compatibility)
+
+### Fixed
+
+- Exception messages truncated to 500 chars (full body in `response_body` attribute)
+- `AuthenticationError` docstring: now correctly states "401/403"
+- JSON parsing: malformed JSON raises `VchasnoError` instead of `JSONDecodeError`
+- Empty JSON body with `application/json` content-type returns `None` instead of crash
+- `StructuredData` model: `dict[str, object]` → `dict[str, Any]`
+- Removed global `disable_error_code` from mypy (per-line ignores instead)
+
+### Changed
+
+- All `-> Any` public methods replaced with proper return types (`-> None`, models, or `dict[str, Any]`)
+- `_UNSET` sentinel: proper `_Unset` enum type instead of `Any = object()`
+- Expanded ruff rules: added `A`, `C4`, `T20`, `RUF`
+- `unasyncd` added to dev dependencies
+
 ## [0.1.1] - 2026-04-05
 
 ### Fixed
@@ -68,5 +112,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `py.typed` marker for type checker support.
 - Typed exception hierarchy: `VchasnoError` > `VchasnoAPIError` > `Auth/RateLimit/NotFound/BadRequest`.
 
+[0.2.0]: https://github.com/captainluzik/py-vchasno/releases/tag/v0.2.0
 [0.1.1]: https://github.com/captainluzik/py-vchasno/releases/tag/v0.1.1
 [0.1.0]: https://github.com/captainluzik/py-vchasno/releases/tag/v0.1.0

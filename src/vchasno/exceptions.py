@@ -23,7 +23,7 @@ class VchasnoAPIError(VchasnoError):
 
 
 class AuthenticationError(VchasnoAPIError):
-    """403 - authentication / authorization failure."""
+    """401/403 — authentication or authorization failure."""
 
 
 class RateLimitError(VchasnoAPIError):

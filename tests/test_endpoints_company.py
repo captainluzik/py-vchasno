@@ -8,7 +8,8 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from vchasno.endpoints.company import AsyncCompany, SyncCompany
+from vchasno._async.endpoints.company import AsyncCompany
+from vchasno._sync.endpoints.company import SyncCompany
 from vchasno.models.common import CompanyCheck, CompanyCheckUpload
 
 

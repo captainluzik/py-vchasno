@@ -8,7 +8,8 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from vchasno.endpoints.documents import AsyncDocuments, SyncDocuments
+from vchasno._async.endpoints.documents import AsyncDocuments
+from vchasno._sync.endpoints.documents import SyncDocuments
 from vchasno.models.common import UpdatedIds
 from vchasno.models.documents import (
     Document,
@@ -135,9 +136,10 @@ class TestSyncDocuments:
 
     def test_set_flow(self):
         ep, req = self._make()
-        req.return_value = {"ok": True}
-        result = ep.set_flow("d1", [{"edrpou": "e", "order": 1}])
-        assert result == {"ok": True}
+        req.return_value = None
+        ep.set_flow("d1", [{"edrpou": "e", "order": 1}])
+        req.assert_called_once()
+        assert req.call_args.kwargs["json"] == [{"edrpou": "e", "order": 1}]
 
     def test_list_incoming(self):
         ep, req = self._make()
@@ -147,9 +149,9 @@ class TestSyncDocuments:
 
     def test_set_signers(self):
         ep, req = self._make()
-        req.return_value = {"ok": True}
-        result = ep.set_signers("d1", signer_entities=[{"email": "e@m.com"}], is_parallel=False)
-        assert result == {"ok": True}
+        req.return_value = None
+        ep.set_signers("d1", signer_entities=[{"email": "e@m.com"}], is_parallel=False)
+        req.assert_called_once()
 
     def test_download_original_no_version(self):
         ep, req = self._make()
@@ -259,6 +261,34 @@ class TestSyncDocuments:
         ep.structured_data_download("d1", output_format="json")
         req.assert_called_with("GET", "/api/v2/documents/d1/structured-data/download", params={"format": "json"})
 
+    def test_download_archive_with_instruction(self):
+        ep, req = self._make()
+        req.return_value = b"zip-data"
+        ep.download_archive("d1", with_instruction=1)
+        assert req.call_args.kwargs["params"] == {"with_instruction": 1}
+
+    def test_statuses_rejects_over_500(self):
+        ep, _ = self._make()
+        with pytest.raises(ValueError, match="500"):
+            ep.statuses(["id"] * 501)
+
+    def test_upload_recipient_edrpou(self):
+        ep, req = self._make()
+        req.return_value = DOC_DATA
+        with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as f:
+            f.write(b"test")
+            f.flush()
+            path = f.name
+        try:
+            ep.upload(path, recipient_edrpou="12345678")
+            # recipient_edrpou is resolved to 'edrpou' query param by collect_params
+            call_params = req.call_args.kwargs.get("params", {})
+            assert call_params.get("edrpou") == "12345678"
+        finally:
+            import os
+
+            os.unlink(path)
+
 
 class TestAsyncDocuments:
     def _make(self) -> tuple[AsyncDocuments, AsyncMock]:
@@ -359,9 +389,10 @@ class TestAsyncDocuments:
     @pytest.mark.asyncio
     async def test_set_flow(self):
         ep, req = self._make()
-        req.return_value = {"ok": True}
-        result = await ep.set_flow("d1", [])
-        assert result == {"ok": True}
+        req.return_value = None
+        await ep.set_flow("d1", [{"edrpou": "e", "order": 1}])
+        req.assert_called_once()
+        assert req.call_args.kwargs["json"] == [{"edrpou": "e", "order": 1}]
 
     @pytest.mark.asyncio
     async def test_list_incoming(self):
@@ -491,3 +522,34 @@ class TestAsyncDocuments:
         ep, req = self._make()
         req.return_value = {"details": {}}
         await ep.structured_data_download("d1")
+
+    @pytest.mark.asyncio
+    async def test_download_archive_with_instruction(self):
+        ep, req = self._make()
+        req.return_value = b"zip-data"
+        await ep.download_archive("d1", with_instruction=1)
+        assert req.call_args.kwargs["params"] == {"with_instruction": 1}
+
+    @pytest.mark.asyncio
+    async def test_statuses_rejects_over_500(self):
+        ep, _ = self._make()
+        with pytest.raises(ValueError, match="500"):
+            await ep.statuses(["id"] * 501)
+
+    @pytest.mark.asyncio
+    async def test_upload_recipient_edrpou(self):
+        ep, req = self._make()
+        req.return_value = DOC_DATA
+        with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as f:
+            f.write(b"test")
+            f.flush()
+            path = f.name
+        try:
+            await ep.upload(path, recipient_edrpou="12345678")
+            # recipient_edrpou is resolved to 'edrpou' query param by collect_params
+            call_params = req.call_args.kwargs.get("params", {})
+            assert call_params.get("edrpou") == "12345678"
+        finally:
+            import os
+
+            os.unlink(path)

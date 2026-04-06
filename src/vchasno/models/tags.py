@@ -8,6 +8,8 @@ from pydantic import BaseModel
 class Tag(BaseModel):
     """A tag / label."""
 
+    model_config = {"extra": "allow"}
+
     id: str
     name: str
     date_created: str | None = None
@@ -16,11 +18,15 @@ class Tag(BaseModel):
 class TagList(BaseModel):
     """Response for GET /api/v2/tags."""
 
+    model_config = {"extra": "allow"}
+
     tags: list[Tag]
 
 
 class TagRole(BaseModel):
     """Role linked to a tag."""
+
+    model_config = {"extra": "allow"}
 
     role_id: str
     tag_id: str
@@ -30,5 +36,7 @@ class TagRole(BaseModel):
 
 class TagRoleList(BaseModel):
     """Response for GET /api/v2/tags/{tag_id}/roles."""
+
+    model_config = {"extra": "allow"}
 
     roles: list[TagRole]

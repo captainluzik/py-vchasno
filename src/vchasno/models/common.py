@@ -8,6 +8,8 @@ from pydantic import BaseModel
 class DocumentCategoryInfo(BaseModel):
     """Document category details returned by GET /api/v2/document-categories."""
 
+    model_config = {"extra": "allow"}
+
     category_id: int
     category_title: str
     is_public: bool
@@ -17,6 +19,8 @@ class DocumentCategoryInfo(BaseModel):
 
 class CustomField(BaseModel):
     """A custom field definition."""
+
+    model_config = {"extra": "allow"}
 
     id: str
     name: str
@@ -29,6 +33,8 @@ class CustomField(BaseModel):
 
 class DocumentField(BaseModel):
     """A custom field value attached to a document."""
+
+    model_config = {"extra": "allow"}
 
     field_id: str
     name: str
@@ -87,11 +93,15 @@ class Template(BaseModel):
 class ReportRequest(BaseModel):
     """Result of requesting a report."""
 
+    model_config = {"extra": "allow"}
+
     report_id: str
 
 
 class ReportStatus(BaseModel):
     """Report readiness status."""
+
+    model_config = {"extra": "allow"}
 
     status: str
     filename: str | None = None
@@ -100,6 +110,8 @@ class ReportStatus(BaseModel):
 class CompanyCheck(BaseModel):
     """Company registration check result."""
 
+    model_config = {"extra": "allow"}
+
     edrpou: str
     name: str
     is_registered: bool
@@ -107,6 +119,8 @@ class CompanyCheck(BaseModel):
 
 class CompanyCheckUpload(BaseModel):
     """Bulk company check result."""
+
+    model_config = {"extra": "allow"}
 
     companies: list[CompanyCheck]
     percentage: str | None = None
@@ -118,4 +132,12 @@ class CompanyCheckUpload(BaseModel):
 class UpdatedIds(BaseModel):
     """Generic response with a list of updated IDs."""
 
+    model_config = {"extra": "allow"}
+
     updated_ids: list[str]
+
+
+class ActionResult(BaseModel):
+    """Generic successful action response (for endpoints with unstructured success bodies)."""
+
+    model_config = {"extra": "allow"}

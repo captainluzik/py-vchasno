@@ -1,6 +1,9 @@
 """Vchasno.EDO API v2 Python SDK."""
 
-from vchasno.client import AsyncVchasno, Vchasno
+from __future__ import annotations
+
+from vchasno._async.client import AsyncVchasno
+from vchasno._sync.client import Vchasno
 from vchasno.exceptions import (
     AuthenticationError,
     BadRequestError,
@@ -10,17 +13,15 @@ from vchasno.exceptions import (
     VchasnoError,
 )
 
-__version__ = "0.1.1"
+__version__ = "0.2.0"
 
 __all__ = [
-    # clients
     "AsyncVchasno",
-    "Vchasno",
-    # exceptions
-    "VchasnoError",
-    "VchasnoAPIError",
     "AuthenticationError",
-    "RateLimitError",
-    "NotFoundError",
     "BadRequestError",
+    "NotFoundError",
+    "RateLimitError",
+    "Vchasno",
+    "VchasnoAPIError",
+    "VchasnoError",
 ]

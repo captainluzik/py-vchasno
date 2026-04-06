@@ -2,11 +2,15 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from pydantic import BaseModel
 
 
 class Signature(BaseModel):
     """A document signature (short form from document list)."""
+
+    model_config = {"extra": "allow"}
 
     id: str
     email: str | None = None
@@ -15,6 +19,8 @@ class Signature(BaseModel):
 
 class SignatureDetail(BaseModel):
     """Detailed signature information."""
+
+    model_config = {"extra": "allow"}
 
     id: str
     edrpou: str | None = None
@@ -42,6 +48,8 @@ class StampInfo(BaseModel):
 class Recipient(BaseModel):
     """Recipient info."""
 
+    model_config = {"extra": "allow"}
+
     edrpou: str | None = None
     emails: list[str] | None = None
     name: str | None = None
@@ -50,6 +58,8 @@ class Recipient(BaseModel):
 
 class Version(BaseModel):
     """Document version."""
+
+    model_config = {"extra": "allow"}
 
     id: str
     name: str | None = None
@@ -111,6 +121,8 @@ class DeleteRequestRef(BaseModel):
 class _BaseDocument(BaseModel):
     """Shared fields between outgoing and incoming documents."""
 
+    model_config = {"extra": "allow"}
+
     id: str
     extension: str | None = None
     title: str | None = None
@@ -155,6 +167,8 @@ class Document(_BaseDocument):
 class DocumentList(BaseModel):
     """Paginated list of documents."""
 
+    model_config = {"extra": "allow"}
+
     documents: list[Document]
     next_cursor: str | None = None
 
@@ -169,12 +183,16 @@ class IncomingDocument(_BaseDocument):
 class IncomingDocumentList(BaseModel):
     """Paginated list of incoming documents."""
 
+    model_config = {"extra": "allow"}
+
     documents: list[IncomingDocument]
     next_cursor: str | None = None
 
 
 class DownloadDocument(BaseModel):
     """Download info for a document."""
+
+    model_config = {"extra": "allow"}
 
     id: str
     extension: str | None = None
@@ -187,6 +205,8 @@ class DownloadDocument(BaseModel):
 class DownloadDocumentList(BaseModel):
     """Response for download-documents endpoint."""
 
+    model_config = {"extra": "allow"}
+
     status: int | None = None
     ready: bool | None = None
     pending: bool | None = None
@@ -197,6 +217,8 @@ class DownloadDocumentList(BaseModel):
 class DocumentStatusItem(BaseModel):
     """Single item in the statuses response."""
 
+    model_config = {"extra": "allow"}
+
     document_id: str
     status_id: int
     status_text: str
@@ -204,6 +226,8 @@ class DocumentStatusItem(BaseModel):
 
 class DocumentStatusList(BaseModel):
     """Response for POST /documents/statuses."""
+
+    model_config = {"extra": "allow"}
 
     data_list: list[DocumentStatusItem]
 
@@ -220,6 +244,8 @@ class Author(BaseModel):
 class Comment(BaseModel):
     """Document comment."""
 
+    model_config = {"extra": "allow"}
+
     id: str
     text: str | None = None
     document_id: str | None = None
@@ -234,12 +260,16 @@ class Comment(BaseModel):
 class CommentList(BaseModel):
     """Paginated list of comments."""
 
+    model_config = {"extra": "allow"}
+
     comments: list[Comment]
     next_cursor: str | None = None
 
 
 class Review(BaseModel):
     """Review history entry."""
+
+    model_config = {"extra": "allow"}
 
     user_email: str | None = None
     group_name: str | None = None
@@ -251,6 +281,8 @@ class Review(BaseModel):
 class ReviewRequest(BaseModel):
     """Review request entry."""
 
+    model_config = {"extra": "allow"}
+
     user_from_email: str | None = None
     user_to_email: str | None = None
     group_to_name: str | None = None
@@ -261,6 +293,8 @@ class ReviewRequest(BaseModel):
 class ReviewStatus(BaseModel):
     """Overall review status of a document."""
 
+    model_config = {"extra": "allow"}
+
     status: str
     is_required: bool | None = None
     date_created: str | None = None
@@ -269,6 +303,8 @@ class ReviewStatus(BaseModel):
 
 class FlowEntry(BaseModel):
     """Multilateral document flow entry."""
+
+    model_config = {"extra": "allow"}
 
     edrpou: str | None = None
     order: int | None = None
@@ -279,10 +315,12 @@ class FlowEntry(BaseModel):
 class StructuredData(BaseModel):
     """Structured data from a document (flexible dict)."""
 
-    details: dict[str, object] | None = None
-    parties_information: dict[str, object] | None = None
-    items: list[dict[str, object]] | None = None
-    total_price: dict[str, object] | None = None
+    model_config = {"extra": "allow"}
+
+    details: dict[str, Any] | None = None
+    parties_information: dict[str, Any] | None = None
+    items: list[dict[str, Any]] | None = None
+    total_price: dict[str, Any] | None = None
 
 
 # Rebuild forward-ref for StampInfo used in SignatureDetail

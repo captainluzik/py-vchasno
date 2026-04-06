@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "py-vchasno"
-version = "0.1.1"
+version = "0.2.0"
 description = "Python SDK for Vchasno.EDO (Electronic Document Management) API v2"
 readme = "README.md"
 license = {text = "MIT"}
@@ -44,6 +44,7 @@ dev = [
     "pytest-asyncio>=0.24",
     "mypy>=1.10",
     "ruff>=0.4",
+    "unasyncd>=0.10",
 ]
 
 [project.urls]
@@ -73,14 +74,135 @@ asyncio_mode = "auto"
 python_version = "3.11"
 strict = true
 warn_return_any = false
-# list() methods shadow builtins.list; BinaryIO/BufferedReader coercion; pydantic BaseModel subclass
-disable_error_code = ["valid-type", "assignment", "misc"]
 ignore_missing_imports = true
+# Ignore: method `list()` shadows builtin `list` type in return annotations
+# Ignore: open() returns BufferedReader, annotated as IO[bytes] for flexibility
+disable_error_code = ["valid-type", "assignment"]
+
+[tool.unasyncd]
+ruff_fix = true
+
+[tool.unasyncd.add_replacements]
+"AsyncClient" = "Client"
+"aclose" = "close"
+"AsyncTransport" = "vchasno._sync._http.SyncTransport"
+"AsyncEndpoint" = "vchasno._sync.endpoints._base.SyncEndpoint"
+"AsyncVchasno" = "vchasno._sync.client.Vchasno"
+"AsyncArchive" = "vchasno._sync.endpoints.archive.SyncArchive"
+"AsyncBilling" = "vchasno._sync.endpoints.billing.SyncBilling"
+"AsyncCategories" = "vchasno._sync.endpoints.categories.SyncCategories"
+"AsyncChildren" = "vchasno._sync.endpoints.children.SyncChildren"
+"AsyncCloudSigner" = "vchasno._sync.endpoints.cloud_signer.SyncCloudSigner"
+"AsyncComments" = "vchasno._sync.endpoints.comments.SyncComments"
+"AsyncCompany" = "vchasno._sync.endpoints.company.SyncCompany"
+"AsyncDeleteRequests" = "vchasno._sync.endpoints.delete_requests.SyncDeleteRequests"
+"AsyncDocuments" = "vchasno._sync.endpoints.documents.SyncDocuments"
+"AsyncFields" = "vchasno._sync.endpoints.fields.SyncFields"
+"AsyncGroups" = "vchasno._sync.endpoints.groups.SyncGroups"
+"AsyncReports" = "vchasno._sync.endpoints.reports.SyncReports"
+"AsyncReviews" = "vchasno._sync.endpoints.reviews.SyncReviews"
+"AsyncRoles" = "vchasno._sync.endpoints.roles.SyncRoles"
+"AsyncSignatures" = "vchasno._sync.endpoints.signatures.SyncSignatures"
+"AsyncTags" = "vchasno._sync.endpoints.tags.SyncTags"
+"AsyncTemplates" = "vchasno._sync.endpoints.templates.SyncTemplates"
+"AsyncVersions" = "vchasno._sync.endpoints.versions.SyncVersions"
+
+[tool.unasyncd.per_file_add_replacements."src/vchasno/_async/_http.py"]
+"AsyncTransport" = "SyncTransport"
+"aiter_bytes" = "iter_bytes"
+
+[tool.unasyncd.per_file_add_replacements."src/vchasno/_async/endpoints/_base.py"]
+"AsyncEndpoint" = "SyncEndpoint"
+
+[tool.unasyncd.per_file_add_replacements."src/vchasno/_async/endpoints/archive.py"]
+"AsyncArchive" = "SyncArchive"
+
+[tool.unasyncd.per_file_add_replacements."src/vchasno/_async/endpoints/billing.py"]
+"AsyncBilling" = "SyncBilling"
+
+[tool.unasyncd.per_file_add_replacements."src/vchasno/_async/endpoints/categories.py"]
+"AsyncCategories" = "SyncCategories"
+
+[tool.unasyncd.per_file_add_replacements."src/vchasno/_async/endpoints/children.py"]
+"AsyncChildren" = "SyncChildren"
+
+[tool.unasyncd.per_file_add_replacements."src/vchasno/_async/endpoints/cloud_signer.py"]
+"AsyncCloudSigner" = "SyncCloudSigner"
+
+[tool.unasyncd.per_file_add_replacements."src/vchasno/_async/endpoints/comments.py"]
+"AsyncComments" = "SyncComments"
+
+[tool.unasyncd.per_file_add_replacements."src/vchasno/_async/endpoints/company.py"]
+"AsyncCompany" = "SyncCompany"
+
+[tool.unasyncd.per_file_add_replacements."src/vchasno/_async/endpoints/delete_requests.py"]
+"AsyncDeleteRequests" = "SyncDeleteRequests"
+
+[tool.unasyncd.per_file_add_replacements."src/vchasno/_async/endpoints/documents.py"]
+"AsyncDocuments" = "SyncDocuments"
+
+[tool.unasyncd.per_file_add_replacements."src/vchasno/_async/endpoints/fields.py"]
+"AsyncFields" = "SyncFields"
+
+[tool.unasyncd.per_file_add_replacements."src/vchasno/_async/endpoints/groups.py"]
+"AsyncGroups" = "SyncGroups"
+
+[tool.unasyncd.per_file_add_replacements."src/vchasno/_async/endpoints/reports.py"]
+"AsyncReports" = "SyncReports"
+
+[tool.unasyncd.per_file_add_replacements."src/vchasno/_async/endpoints/reviews.py"]
+"AsyncReviews" = "SyncReviews"
+
+[tool.unasyncd.per_file_add_replacements."src/vchasno/_async/endpoints/roles.py"]
+"AsyncRoles" = "SyncRoles"
+
+[tool.unasyncd.per_file_add_replacements."src/vchasno/_async/endpoints/signatures.py"]
+"AsyncSignatures" = "SyncSignatures"
+
+[tool.unasyncd.per_file_add_replacements."src/vchasno/_async/endpoints/tags.py"]
+"AsyncTags" = "SyncTags"
+
+[tool.unasyncd.per_file_add_replacements."src/vchasno/_async/endpoints/templates.py"]
+"AsyncTemplates" = "SyncTemplates"
+
+[tool.unasyncd.per_file_add_replacements."src/vchasno/_async/endpoints/versions.py"]
+"AsyncVersions" = "SyncVersions"
+
+[tool.unasyncd.per_file_add_replacements."src/vchasno/_async/client.py"]
+"AsyncVchasno" = "Vchasno"
+
+[tool.unasyncd.files]
+"src/vchasno/_async/_http.py" = "src/vchasno/_sync/_http.py"
+"src/vchasno/_async/endpoints/_base.py" = "src/vchasno/_sync/endpoints/_base.py"
+"src/vchasno/_async/endpoints/archive.py" = "src/vchasno/_sync/endpoints/archive.py"
+"src/vchasno/_async/endpoints/billing.py" = "src/vchasno/_sync/endpoints/billing.py"
+"src/vchasno/_async/endpoints/categories.py" = "src/vchasno/_sync/endpoints/categories.py"
+"src/vchasno/_async/endpoints/children.py" = "src/vchasno/_sync/endpoints/children.py"
+"src/vchasno/_async/endpoints/cloud_signer.py" = "src/vchasno/_sync/endpoints/cloud_signer.py"
+"src/vchasno/_async/endpoints/comments.py" = "src/vchasno/_sync/endpoints/comments.py"
+"src/vchasno/_async/endpoints/company.py" = "src/vchasno/_sync/endpoints/company.py"
+"src/vchasno/_async/endpoints/delete_requests.py" = "src/vchasno/_sync/endpoints/delete_requests.py"
+"src/vchasno/_async/endpoints/documents.py" = "src/vchasno/_sync/endpoints/documents.py"
+"src/vchasno/_async/endpoints/fields.py" = "src/vchasno/_sync/endpoints/fields.py"
+"src/vchasno/_async/endpoints/groups.py" = "src/vchasno/_sync/endpoints/groups.py"
+"src/vchasno/_async/endpoints/reports.py" = "src/vchasno/_sync/endpoints/reports.py"
+"src/vchasno/_async/endpoints/reviews.py" = "src/vchasno/_sync/endpoints/reviews.py"
+"src/vchasno/_async/endpoints/roles.py" = "src/vchasno/_sync/endpoints/roles.py"
+"src/vchasno/_async/endpoints/signatures.py" = "src/vchasno/_sync/endpoints/signatures.py"
+"src/vchasno/_async/endpoints/tags.py" = "src/vchasno/_sync/endpoints/tags.py"
+"src/vchasno/_async/endpoints/templates.py" = "src/vchasno/_sync/endpoints/templates.py"
+"src/vchasno/_async/endpoints/versions.py" = "src/vchasno/_sync/endpoints/versions.py"
+"src/vchasno/_async/client.py" = "src/vchasno/_sync/client.py"
 
 [tool.ruff]
 target-version = "py310"
 line-length = 120
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "UP", "B", "SIM"]
-ignore = ["SIM115"]  # open() without context manager is intentional for file-upload patterns
+select = ["E", "F", "I", "UP", "B", "SIM", "A", "C4", "T20", "RUF"]
+ignore = [
+    "SIM115",  # open() without context manager — intentional in file-upload patterns
+    "A003",    # class attribute 'type' shadows builtin — matches API field names
+    "UP038",   # isinstance(x, (str, Path)) — X | Y syntax not supported at runtime in Python 3.10
+    "RUF022",  # __all__ sorted by category, not alphabetically — intentional for readability
+]
